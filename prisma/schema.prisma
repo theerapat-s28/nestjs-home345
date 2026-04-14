@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+//================ ENUMS =================//
+
+enum Role {
+  admin
+  user
+}
+
+enum UserStatus {
+  pending
+  approved
+  rejected
+}
+
+enum NotificationType {
+  info     // General news or announcements
+  task     // Task / work assignments
+  event    // Calendar event invitations
+  approval // Approval requests (e.g. content, access)
+  system   // System-generated messages
+}
+
+//================ USERS =================//
+
+model User {
+  id              String     @id @default(uuid())
+  username        String     @unique
+  email           String     @unique
+  password        String?
+  isResetPassword Boolean    @default(true)
+  role            Role       @default(user)
+  status          UserStatus @default(pending)
+  lastLoginAt     DateTime?  @db.Timestamptz
+
+  // Timestamps
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
+
+  // Relations
+  profile                UserProfile?
+  sentNotifications      Notification[]
+  notificationRecipients NotificationRecipient[]
+
+  @@index([deletedAt])
+  @@map("users")
+}
+
+//================ USER PROFILE =================//
+
+model UserProfile {
+  id              String  @id @default(uuid())
+  profileImageUrl String?
+  bio             String? // Short personal bio / description
+  userId          String  @unique
+
+  // Timestamps
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+//================ DOCUMENTS =================//
+
+/**
+ * Generic document record.  The S3 key is stored here; the actual file
+ * lives in S3.  Attach documents to any entity via DocumentLink.
+ */
+model Document {
+  id          String  @id @default(uuid())
+  name        String
+  key         String  @unique // S3 object key
+  description String?
+  mimeType    String? // e.g. "application/pdf"
+
+  // Timestamps
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  // Relations
+  links DocumentLink[]
+
+  @@map("documents")
+}
+
+/**
+ * Polymorphic join table: attaches a Document to any entity.
+ *
+ * Add new entity types to DocumentEntityType as your project grows.
+ * Example: add `item`, `post`, `report` etc.
+ */
+enum DocumentEntityType {
+  user_profile
+  other
+}
+
+model DocumentLink {
+  documentId String
+  entityId   String
+  entityType DocumentEntityType
+
+  // Timestamps
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  // Relations
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@id([documentId, entityId, entityType])
+  @@index([entityId, entityType])
+  @@map("document_links")
+}
+
+//================ NOTIFICATIONS =================//
+
+model Notification {
+  id       String           @id @default(uuid())
+  title    String
+  message  String?
+  type     NotificationType
+  data     Json?            // Arbitrary metadata — use for deep-link payloads etc.
+  senderId String?
+
+  // Timestamps
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  // Relations
+  sender     User?                   @relation(fields: [senderId], references: [id], onDelete: SetNull)
+  recipients NotificationRecipient[]
+
+  @@index([senderId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationRecipient {
+  id             String @id @default(uuid())
+  userId         String
+  notificationId String
+
+  isRead Boolean   @default(false)
+  readAt DateTime? @db.Timestamptz
+
+  // Timestamps
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, notificationId])
+  @@index([userId])
+  @@index([notificationId])
+  @@index([userId, isRead])
+  @@map("notification_recipients")
+}
+
+// =============================================================
+// Add your personal project models below this line.
+// Follow the same pattern: model → @@map → index on deletedAt.
+//
+// Example personal feature model:
+//
+// model Item {
+//   id          String   @id @default(uuid())
+//   title       String
+//   description String?
+//   userId      String
+//
+//   isActive  Boolean   @default(true)
+//   createdAt DateTime  @default(now()) @db.Timestamptz
+//   updatedAt DateTime  @updatedAt @db.Timestamptz
+//   deletedAt DateTime? @db.Timestamptz
+//
+//   owner User @relation(fields: [userId], references: [id], onDelete: Cascade)
+//
+//   @@index([userId])
+//   @@index([deletedAt])
+//   @@map("items")
+// }
+// =============================================================

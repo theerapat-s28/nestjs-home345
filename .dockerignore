@@ -1,0 +1,14 @@
+.vscode
+node_modules
+dist
+md
+
+.git
+.gitignore
+Dockerfile
+README.md
+
+.env
+.env.example
+.env.production
+.env.development

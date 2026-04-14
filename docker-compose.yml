@@ -1,0 +1,14 @@
+# Please run with `docker-compose up -d --build` command
+networks:
+  form-portal:
+    external: true
+
+services:
+  backend:
+    build: .
+    # ports:
+    #   - "3000:3000"
+    env_file:
+      - .env.production
+    networks:
+      - form-portal

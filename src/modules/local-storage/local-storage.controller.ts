@@ -17,7 +17,7 @@ import {
 } from "@nestjs/swagger";
 import { LocalStorageService } from "./local-storage.service";
 
-@ApiTags("local-storage")
+@ApiTags("Local Storage")
 @Controller("local-storage")
 export class LocalStorageController {
   constructor(private readonly localStorageService: LocalStorageService) {}

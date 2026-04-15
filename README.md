@@ -120,3 +120,14 @@ console.log('Public URL:', data.url);
 - ⏱️ S3 Presigned URLs expire after **5 minutes**.
 - 🔒 All upload endpoints are protected by the `JwtAuthGuard`.
 
+---
+
+## 🔄 Template Updates
+
+To keep your project up to date with the latest changes from the template repository:
+
+```bash
+git fetch template
+git merge template/main
+```
+

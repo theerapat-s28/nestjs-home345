@@ -54,7 +54,7 @@ export class ItemsService {
     const { search, limit, offset } = query;
 
     // Admins see all items; regular users only see their own
-    const ownerFilter = role === Role.admin ? {} : { userId };
+    const ownerFilter = role === Role.ADMIN ? {} : { userId };
 
     const where: any = {
       ...ownerFilter,
@@ -92,7 +92,7 @@ export class ItemsService {
     if (!item) throw new NotFoundException("Item not found");
 
     // Regular users may only read their own items
-    if (role !== Role.admin && item.userId !== userId) {
+    if (role !== Role.ADMIN && item.userId !== userId) {
       throw new ForbiddenException("You do not have access to this item");
     }
 
@@ -108,7 +108,7 @@ export class ItemsService {
 
     if (!item) throw new NotFoundException("Item not found");
 
-    if (role !== Role.admin && item.userId !== userId) {
+    if (role !== Role.ADMIN && item.userId !== userId) {
       throw new ForbiddenException("You do not have access to this item");
     }
 
@@ -132,7 +132,7 @@ export class ItemsService {
 
     if (!item) throw new NotFoundException("Item not found");
 
-    if (role !== Role.admin && item.userId !== userId) {
+    if (role !== Role.ADMIN && item.userId !== userId) {
       throw new ForbiddenException("You do not have access to this item");
     }
 

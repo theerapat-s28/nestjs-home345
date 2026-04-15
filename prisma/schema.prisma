@@ -9,22 +9,22 @@ datasource db {
 //================ ENUMS =================//
 
 enum Role {
-  admin
-  user
+  ADMIN
+  USER
 }
 
 enum UserStatus {
-  pending
-  approved
-  rejected
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum NotificationType {
-  info // General news or announcements
-  task // Task / work assignments
-  event // Calendar event invitations
-  approval // Approval requests (e.g. content, access)
-  system // System-generated messages
+  INFO     // General news or announcements
+  TASK     // Task / work assignments
+  EVENT    // Calendar event invitations
+  APPROVAL // Approval requests (e.g. content, access)
+  SYSTEM   // System-generated messages
 }
 
 //================ USERS =================//
@@ -35,8 +35,8 @@ model User {
   email           String     @unique
   password        String?
   isResetPassword Boolean    @default(true)
-  role            Role       @default(user)
-  status          UserStatus @default(pending)
+  role            Role       @default(USER)
+  status          UserStatus @default(PENDING)
   lastLoginAt     DateTime?  @db.Timestamptz
 
   // Timestamps
@@ -104,8 +104,8 @@ model Document {
  * Example: add `item`, `post`, `report` etc.
  */
 enum DocumentEntityType {
-  user_profile
-  other
+  USER_PROFILE
+  OTHER
 }
 
 model DocumentLink {

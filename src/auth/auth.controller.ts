@@ -151,7 +151,7 @@ export class AuthController {
 
   // Example of role-protected route
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.admin)
+  @Roles(Role.ADMIN)
   @Get("admin-only")
   @HttpCode(HttpStatus.OK)
   adminOnly() {

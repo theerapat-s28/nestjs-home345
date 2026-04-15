@@ -27,6 +27,13 @@ enum NotificationType {
   SYSTEM   // System-generated messages
 }
 
+// ISO 4217 currency codes — extend as needed
+enum Currency {
+  USD
+  EUR
+  THB
+}
+
 //================ USERS =================//
 
 model User {
@@ -51,6 +58,7 @@ model User {
   notificationRecipients NotificationRecipient[]
   subscriptions          Subscription[]
   paymentMethods         PaymentMethod[]
+  portfolios             PortfolioMember[]
 
   @@index([deletedAt])
   @@map("users")
@@ -60,6 +68,7 @@ model User {
 
 model UserProfile {
   id              String  @id @default(uuid())
+  name            String?
   profileImageUrl String?
   bio             String? // Short personal bio / description
   userId          String  @unique
@@ -196,12 +205,7 @@ enum NotificationChannel {
   SMS
 }
 
-// ISO 4217 currency codes — extend as needed
-enum Currency {
-  USD
-  EUR
-  THB
-}
+
 
 model Subscription {
   id          String  @id @default(uuid())
@@ -212,7 +216,7 @@ model Subscription {
 
   // --- Billing ---
   amount          Decimal      @db.Decimal(10, 2) // Use Decimal, not Float (avoids rounding errors)
-  currency        Currency // Enum-guarded, prevents "usd" / "USD" drift
+  currency        Currency     @default(THB) // Enum-guarded, prevents "usd" / "USD" drift
   billingCycle    BillingCycle
   nextBillingDate DateTime     @db.Timestamptz // Source of truth for reminder scheduling
 
@@ -276,4 +280,249 @@ model Reminder {
   @@unique([subscriptionId, daysBefore, channel])
   @@index([isSent]) // Reminder job: WHERE isSent = false AND ...
   @@map("reminders")
+}
+
+//=============================================================
+// PORTFOLIO & ASSET MODULE
+//=============================================================
+
+//////////////////////////////////////////////////////
+// 📁 PORTFOLIO (can be shared)
+//////////////////////////////////////////////////////
+
+model Portfolio {
+  id           String   @id @default(uuid())
+  name         String
+  description  String?
+  baseCurrency Currency @default(THB) // [#9] base currency for equity rollup
+
+  // --- Relations ---
+  members      PortfolioMember[]
+  assets       PortfolioAsset[]
+  cashAccounts PortfolioCash[]
+  cashTxns     CashTransaction[]
+
+  // --- Timestamps ---
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
+
+  @@index([deletedAt])
+  @@map("portfolios")
+}
+
+model PortfolioMember {
+  id          String        @id @default(uuid())
+  userId      String
+  portfolioId String
+  role        PortfolioRole @default(VIEWER)
+  status      MemberStatus  @default(PENDING)
+
+  // --- Relations ---
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  // --- Timestamps ---
+  createdAt   DateTime @default(now()) @db.Timestamptz
+
+  @@unique([userId, portfolioId])
+  @@map("portfolio_members")
+}
+
+enum PortfolioRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum MemberStatus {
+  PENDING     // invited but not accepted
+  ACTIVE
+  REVOKED
+}
+
+//////////////////////////////////////////////////////
+// 🪙 ASSET (global definition)
+//////////////////////////////////////////////////////
+
+model Asset {
+  id        String    @id @default(uuid())
+  symbol    String    // BTC, AAPL, XAU
+  name      String    // Bitcoin, Apple, Gold
+  type      AssetType
+
+  // --- Relations ---
+  prices    AssetPrice[]
+  holdings  PortfolioAsset[]
+
+  // --- Timestamps ---
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
+
+  @@unique([symbol, type])
+  @@index([type]) // [#10] filter by asset type efficiently
+  @@index([deletedAt])
+  @@map("assets")
+}
+
+enum AssetType {
+  STOCK
+  CRYPTO
+  GOLD
+  FUTURES
+  FOREX
+  OTHER
+}
+
+//////////////////////////////////////////////////////
+// 💰 PRICE HISTORY
+//////////////////////////////////////////////////////
+
+model AssetPrice {
+  id         String   @id @default(uuid())
+  assetId    String
+  price      Decimal  @db.Decimal(20, 8) 
+  currency   Currency @default(THB)
+  source     String?  // [#5] "binance", "yahoo", "manual", etc.
+  recordedAt DateTime @default(now()) @db.Timestamptz
+
+  // --- Relations ---
+  asset      Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId, recordedAt])
+  @@index([currency, recordedAt]) // [#10] multi-currency price lookups
+  @@map("asset_prices")
+}
+
+//////////////////////////////////////////////////////
+// 📊 PORTFOLIO HOLDING (cached state)
+//////////////////////////////////////////////////////
+
+model PortfolioAsset {
+  id          String   @id @default(uuid())
+  portfolioId String
+  assetId     String
+
+  // cached values (derived from transactions)
+  quantity    Decimal  @default(0) @db.Decimal(20, 8)
+  avgCost     Decimal  @default(0) @db.Decimal(20, 8)
+
+  // [#4] cache safety — detect stale state and prevent recalc races
+  lastRecalculatedAt DateTime? @db.Timestamptz
+  isRecalculating    Boolean   @default(false)
+
+  // --- Relations ---
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  asset       Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  // --- Timestamps ---
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
+
+  @@unique([portfolioId, assetId])
+  @@index([deletedAt])
+  @@map("portfolio_assets")
+}
+
+//////////////////////////////////////////////////////
+// 🔄 TRANSACTIONS (source of truth)
+//////////////////////////////////////////////////////
+
+model Transaction {
+  id               String          @id @default(uuid())
+  portfolioAssetId String
+  type             TransactionType
+
+  quantity         Decimal         @db.Decimal(20, 8)
+  pricePerUnit     Decimal         @db.Decimal(20, 8)
+  currency         Currency        @default(THB) // [#3] USD, THB — currency of the quoted price
+  
+  fee              Decimal?        @db.Decimal(20, 8) // optional trading fee
+  note             String?
+  executedAt       DateTime        @db.Timestamptz
+
+  // --- Relations ---
+  portfolioAsset   PortfolioAsset  @relation(fields: [portfolioAssetId], references: [id], onDelete: Cascade)
+  cashTransaction  CashTransaction?
+
+  // --- Timestamps ---
+  createdAt        DateTime @default(now()) @db.Timestamptz
+
+  @@index([portfolioAssetId, executedAt])
+  @@map("transactions")
+}
+
+enum TransactionType {
+  BUY
+  SELL
+  TRANSFER_IN   // [#6] asset transferred in from external wallet/broker
+  TRANSFER_OUT  // [#6] asset transferred out
+  DIVIDEND      // [#6] cash or stock dividend received
+  SPLIT         // [#6] stock split — quantity changes, cost basis does not
+  FEE           // [#6] standalone fee/charge
+}
+
+//////////////////////////////////////////////////////
+// 💵 CASH (balance per currency per portfolio)
+//////////////////////////////////////////////////////
+
+model PortfolioCash {
+  id          String   @id @default(uuid())
+  portfolioId String
+  currency    Currency @default(THB)
+  balance     Decimal  @default(0) @db.Decimal(20, 8)
+
+  // --- Relations ---
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  // --- Timestamps ---
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  @@unique([portfolioId, currency])
+  @@map("portfolio_cash")
+}
+
+//////////////////////////////////////////////////////
+// 🧾 CASH TRANSACTIONS (audit trail) — [#1]
+//////////////////////////////////////////////////////
+
+model CashTransaction {
+  id           String       @id @default(uuid())
+  portfolioId  String
+  currency     Currency     @default(THB)
+  type         CashTxnType
+  amount       Decimal      @db.Decimal(20, 8) // positive = money in, negative = money out
+
+  // optional back-link to the trade that caused this cash movement
+  relatedTxnId String?      @unique
+  relatedTxn   Transaction? @relation(fields: [relatedTxnId], references: [id], onDelete: SetNull)
+
+  note         String?
+  executedAt   DateTime     @db.Timestamptz
+
+  // --- Relations ---
+  portfolio    Portfolio    @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  // --- Timestamps ---
+  createdAt    DateTime @default(now()) @db.Timestamptz
+
+  @@index([portfolioId, executedAt])
+  @@index([currency, executedAt]) // [#10] per-currency cash flow queries
+  @@map("cash_transactions")
+}
+
+enum CashTxnType {
+  DEPOSIT      // cash added to portfolio
+  WITHDRAWAL   // cash withdrawn
+  BUY_DEBIT    // cash deducted when buying an asset
+  SELL_CREDIT  // cash received when selling an asset
+  DIVIDEND     // dividend payment received
+  FEE          // fee charged
+  TRANSFER     // internal transfer between portfolios
 }

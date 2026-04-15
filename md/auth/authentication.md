@@ -1,57 +1,53 @@
-# Authentication API Documentation
+# Authentication Guide
 
-This document provides instructions for frontend developers on how to integrate with the Authentication services.
-
-## Overview
-
-The authentication system supports:
-- Standard Email/Password registration and login.
-- Google OAuth2 integration.
-- Session management using JSON Web Tokens (JWT) stored in HTTP-Only cookies or sent via Authorization headers.
+Base URL: `http://localhost:3000/api`
 
 ---
 
-## 1. Authentication Flow
+## 1. Credential Login (Username & Password)
 
-### A. Email/Password Flow
-1. **Register**: Send user details to `/auth/register`.
-2. **Login**: Send credentials to `/auth/login`.
-3. **Response**: Both endpoints return a JWT `access_token` and user profile details.
-4. **Token Storage**: The frontend should store the `access_token` (e.g., in a secure state manager or local storage) and include it in the `Authorization: Bearer <token>` header for subsequent requests.
+### Register
 
-### B. Google OAuth Flow
-1. **Initiate**: Redirect the user to `${BACKEND_URL}/auth/google`.
-2. **Callback**: The backend handles the Google redirect and sets an **HTTP-Only cookie** named `access_token`.
-3. **Frontend Redirect**: After setting the cookie, the backend redirects the user to `${FRONTEND_URL}/auth/google/callback`.
-4. **Verification**: On the `/auth/google/callback` page, the frontend must call `GET /auth/verify-token`. This endpoint reads the cookie and returns the user profile and token details.
+```http
+POST /api/auth/register
+Content-Type: application/json
+```
 
----
-
-## 2. Endpoints
-
-### Register User
-`POST /auth/register`
-
-**Request Body (`RegisterCredentialDto`):**
 ```json
 {
   "username": "john_doe",
   "email": "john@example.com",
-  "password": "StrongPassword123",
-  "role": "user", // Optional: admin | user
-  "positionId": "uuid-string" // Optional
+  "password": "StrongPassword123"
 }
 ```
 
-**Response (201 Created):**
-Returns the same structure as the Login response.
+Password rules: minimum 8 characters, at least one uppercase letter, one lowercase letter, and one number.
+
+**Response `201`**
+
+```json
+{
+  "message": "User registered successfully",
+  "data": {
+    "id": "uuid",
+    "username": "john_doe",
+    "email": "john@example.com",
+    "role": "USER",
+    "status": "ACTIVE",
+    "profileImageUrl": null
+  }
+}
+```
 
 ---
 
-### Login (Local)
-`POST /auth/login`
+### Login
 
-**Request Body (`LoginCredentialDto`):**
+```http
+POST /api/auth/login
+Content-Type: application/json
+```
+
 ```json
 {
   "username": "john_doe",
@@ -59,70 +55,174 @@ Returns the same structure as the Login response.
 }
 ```
 
-**Response (200 OK):**
+**Response `200`**
+
 ```json
 {
-  "message": "User successfully logged in",
+  "message": "Login successful",
   "data": {
-    "access_token": "eyJhbG...",
+    "access_token": "<JWT>",
     "user": {
       "id": "uuid",
       "username": "john_doe",
       "email": "john@example.com",
-      "role": "user",
-      "status": "active",
-      "employeeId": null,
-      "position": "Developer",
-      "profileImageUrl": "https://..."
+      "role": "USER",
+      "status": "ACTIVE",
+      "profileImageUrl": null
     }
+  }
+}
+```
+
+Use the returned `access_token` as a Bearer token on all subsequent requests:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+---
+
+### Possible login errors
+
+| Status | Reason |
+|--------|--------|
+| `401`  | Invalid username or password |
+| `401`  | Account pending admin approval |
+| `401`  | Account rejected or suspended |
+| `401`  | Account was created via Google — use Google login instead |
+
+---
+
+## 2. Google OAuth Login
+
+The Google OAuth flow works differently by method (app vs. Swagger). In both cases the backend sets an **HttpOnly cookie** (`access_token`) rather than returning the token in the body.
+
+### Step-by-step (Frontend / App)
+
+```
+1. Redirect the user to  GET /api/auth/google
+2. Google redirects back  GET /api/auth/google/callback  (handled by the backend)
+3. Backend sets the HttpOnly cookie and redirects to:
+     <FRONTEND_URL>/auth/google/callback
+4. Frontend calls        GET /api/auth/verify-token
+   → backend reads the cookie and returns the user + a fresh JWT
+```
+
+**Step 4 — verify-token response `200`**
+
+```json
+{
+  "message": "Token login successful",
+  "data": {
+    "access_token": "<JWT>",
+    "user": {
+      "id": "uuid",
+      "username": "google_1718500000_42",
+      "email": "john@gmail.com",
+      "role": "USER",
+      "status": "ACTIVE",
+      "profileImageUrl": null
+    }
+  }
+}
+```
+
+Store `access_token` in memory (not localStorage) and attach it as `Authorization: Bearer <token>` on API calls.
+
+#### Error redirect
+
+If the account is `PENDING` or `REJECTED`, the backend redirects to:
+
+```
+<FRONTEND_URL>/auth/google/callback?error=pending_approval
+```
+
+Handle this on the frontend callback page to show an appropriate message.
+
+---
+
+### New Google accounts
+
+When a user signs in with Google for the first time, the backend auto-creates their account with `status: PENDING`. A **admin must approve** the account before the user can log in. Until approved, every login attempt returns the `pending_approval` error redirect.
+
+---
+
+### Step-by-step (Swagger UI)
+
+1. Open `http://localhost:3000/api/docs`
+2. Navigate to **Authentication → GET /api/auth/google**
+3. Click **Try it out → Execute**  
+   — this redirects to Google consent, then back to Swagger with the cookie set.
+4. You are now authenticated. All Swagger requests will carry the cookie automatically.
+
+To log out from Swagger, call `POST /api/auth/logout` from Swagger UI — it detects the `Referer` header and clears the Swagger-scoped cookie.
+
+---
+
+## 3. Get Authenticated User Profile
+
+```http
+GET /api/auth/profile
+Authorization: Bearer <access_token>
+```
+
+**Response `200`**
+
+```json
+{
+  "message": "Profile retrieved successfully",
+  "data": {
+    "id": "uuid",
+    "username": "john_doe",
+    "email": "john@example.com",
+    "role": "USER",
+    "status": "ACTIVE",
+    "profileImageUrl": null
   }
 }
 ```
 
 ---
 
-### Google OAuth Login
-`GET /auth/google`
+## 4. Logout
 
-Initiates the Google OAuth2 flow. This should be handled by a direct link or `window.location.href` redirect.
+```http
+POST /api/auth/logout
+```
 
----
+Clears the `access_token` HttpOnly cookie. No body required. Discard the JWT on the client side as well.
 
-### Verify Token (Google Flow)
-`GET /auth/verify-token`
+**Response `200`**
 
-Used to retrieve user data after a Google login redirect.
-
-**Request Requirements:**
-- Must include `withCredentials: true` (if using Axios) or `credentials: 'include'` (if using Fetch) to send the `access_token` cookie.
-
-**Response (200 OK):**
-Same structure as the Login response.
+```json
+{ "message": "Successfully logged out" }
+```
 
 ---
 
-### Get User Profile
-`GET /auth/profile`
+## 5. Account Statuses
 
-**Headers:**
-- `Authorization: Bearer <token>` (or via `access_token` cookie)
-
-**Response (200 OK):**
-Returns the profile of the currently authenticated user.
-
----
-
-### Logout
-`POST /auth/logout`
-
-Clears the `access_token` cookie on the backend.
-
-**Request Requirements:**
-- Must include `withCredentials: true` or `credentials: 'include'`.
+| Status    | Description |
+|-----------|-------------|
+| `PENDING` | Account created but awaiting admin approval (Google OAuth new accounts) |
+| `ACTIVE`  | Fully active — login allowed |
+| `REJECTED`| Rejected or suspended — login blocked |
 
 ---
 
-## 3. Important Notes for Frontend
+## 6. JWT Token
+
+The JWT payload contains:
+
+```json
+{ "username": "john_doe", "sub": "<userId>", "role": "USER" }
+```
+
+Expiry is controlled by `JWT_EXPIRES_IN` in `.env` (default `7d`). After expiry the user must log in again — there is no refresh-token endpoint.
+
+---
+
+## 7. Important Notes for Frontend
 
 ### Security & Cookies
 When using Google Login, the `access_token` is stored in an **HTTP-Only cookie**. This means:

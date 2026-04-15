@@ -24,6 +24,10 @@ import * as path from "path";
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { PaymentMethodsModule } from './modules/payment-methods/payment-methods.module';
 import { RemindersModule } from './modules/reminders/reminders.module';
+import { PortfoliosModule } from '@modules/portfolios/portfolios.module';
+import { AssetsModule } from '@modules/assets/assets.module';
+import { TransactionsModule } from '@modules/transactions/transactions.module';
+import { PortfolioCashModule } from '@modules/portfolio-cash/portfolio-cash.module';
 
 @Module({
   imports: [
@@ -66,8 +70,11 @@ import { RemindersModule } from './modules/reminders/reminders.module';
     RemindersModule,
 
     // ─── Personal Project Features ────────────────────────────────────────────
-    // Add your feature modules here:
-    // ItemsModule,
+    // Portfolio & Asset Management
+    PortfoliosModule,
+    AssetsModule,
+    TransactionsModule,
+    PortfolioCashModule,
   ],
 
   controllers: [AppController],

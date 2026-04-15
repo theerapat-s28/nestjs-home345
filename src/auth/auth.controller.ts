@@ -12,7 +12,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { ApiTags, ApiResponse } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
-import { RegisterCredentialDto } from "./dtos/register-credentail.dto";
+import { RegisterCredentialDto } from "./dtos/register-credential.dto";
 import { LoginCredentialDto } from "./dtos/login-credential.dto";
 import { Public } from "./decorators/public.decorator";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";

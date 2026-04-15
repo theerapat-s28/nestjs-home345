@@ -21,6 +21,9 @@ import * as path from "path";
 // ─── Personal Project Feature Modules ─────────────────────────────────────────
 // Import your own feature modules here following the same pattern:
 // import { ItemsModule } from "@modules/items/items.module";
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { PaymentMethodsModule } from './modules/payment-methods/payment-methods.module';
+import { RemindersModule } from './modules/reminders/reminders.module';
 
 @Module({
   imports: [
@@ -58,6 +61,9 @@ import * as path from "path";
         ];
       },
     }),
+    SubscriptionsModule,
+    PaymentMethodsModule,
+    RemindersModule,
 
     // ─── Personal Project Features ────────────────────────────────────────────
     // Add your feature modules here:

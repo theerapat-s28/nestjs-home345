@@ -20,11 +20,11 @@ enum UserStatus {
 }
 
 enum NotificationType {
-  info     // General news or announcements
-  task     // Task / work assignments
-  event    // Calendar event invitations
+  info // General news or announcements
+  task // Task / work assignments
+  event // Calendar event invitations
   approval // Approval requests (e.g. content, access)
-  system   // System-generated messages
+  system // System-generated messages
 }
 
 //================ USERS =================//
@@ -49,6 +49,8 @@ model User {
   profile                UserProfile?
   sentNotifications      Notification[]
   notificationRecipients NotificationRecipient[]
+  subscriptions          Subscription[]
+  paymentMethods         PaymentMethod[]
 
   @@index([deletedAt])
   @@map("users")
@@ -170,26 +172,108 @@ model NotificationRecipient {
 }
 
 // =============================================================
-// Add your personal project models below this line.
-// Follow the same pattern: model → @@map → index on deletedAt.
-//
-// Example personal feature model:
-//
-// model Item {
-//   id          String   @id @default(uuid())
-//   title       String
-//   description String?
-//   userId      String
-//
-//   isActive  Boolean   @default(true)
-//   createdAt DateTime  @default(now()) @db.Timestamptz
-//   updatedAt DateTime  @updatedAt @db.Timestamptz
-//   deletedAt DateTime? @db.Timestamptz
-//
-//   owner User @relation(fields: [userId], references: [id], onDelete: Cascade)
-//
-//   @@index([userId])
-//   @@index([deletedAt])
-//   @@map("items")
-// }
+// SUBSCRIPTION REMINDER MODULE
 // =============================================================
+
+enum BillingCycle {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum PaymentType {
+  CREDIT_CARD
+  DEBIT_CARD
+  PAYPAL
+  BANK_TRANSFER
+  CRYPTO
+}
+
+enum NotificationChannel {
+  EMAIL
+  PUSH
+  SMS
+}
+
+// ISO 4217 currency codes — extend as needed
+enum Currency {
+  USD
+  EUR
+  THB
+}
+
+model Subscription {
+  id          String  @id @default(uuid())
+  userId      String
+  name        String  @unique // Netflix, Spotify, AWS, etc.
+  description String? // Optional note
+  isActive    Boolean @default(true)
+
+  // --- Billing ---
+  amount          Decimal      @db.Decimal(10, 2) // Use Decimal, not Float (avoids rounding errors)
+  currency        Currency // Enum-guarded, prevents "usd" / "USD" drift
+  billingCycle    BillingCycle
+  nextBillingDate DateTime     @db.Timestamptz // Source of truth for reminder scheduling
+
+  // --- Payment ---
+  paymentMethodId String?
+  
+  // --- Auto Timestamps ---
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
+
+  // --- Relation ---
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
+  reminders Reminder[]
+
+  // Indexes for common query patterns
+  @@index([nextBillingDate]) // Reminder job: WHERE nextBillingDate <= now() + N days
+  @@index([userId, isActive]) // Dashboard: fetch user's active subscriptions
+  @@index([deletedAt])
+  @@map("subscriptions")
+}
+
+model PaymentMethod {
+  id       String @id @default(uuid())
+  userId   String
+  type     PaymentType
+  provider String? // VISA, Mastercard, etc.
+  last4    String? // Last 4 digits only — never store full card numbers
+  name     String? // "My main card"
+  
+  // --- Auto Timestamps ---
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
+
+  // --- Relation ---
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  @@index([deletedAt])
+  @@map("payment_methods")
+}
+
+model Reminder {
+  id             String       @id @default(uuid())
+  subscriptionId String
+  daysBefore Int // e.g. 3 = remind 3 days before nextBillingDate
+  channel    NotificationChannel // How to deliver the reminder
+
+  // --- Delivery tracking ---
+  isSent Boolean   @default(false) // Prevents duplicate sends
+  sentAt DateTime? @db.Timestamptz // Null until actually delivered
+
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  // --- Relation ---
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  // A subscription should have at most one reminder rule per (daysBefore + channel) combo
+  @@unique([subscriptionId, daysBefore, channel])
+  @@index([isSent]) // Reminder job: WHERE isSent = false AND ...
+  @@map("reminders")
+}

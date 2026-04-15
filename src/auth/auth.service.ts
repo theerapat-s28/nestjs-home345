@@ -50,7 +50,7 @@ export class AuthService {
         username: data.username,
         email: data.email,
         password: hashedPassword,
-        role: data.role || Role.user,
+        role: data.role || Role.USER,
         profile: { create: {} },
       },
       include: {
@@ -80,8 +80,8 @@ export class AuthService {
           username,
           email: googleUserDetails.email,
           password: null,
-          role: Role.user,
-          status: UserStatus.pending,
+          role: Role.USER,
+          status: UserStatus.PENDING,
           profile: {
             create: {
               profileImageUrl: null,
@@ -94,13 +94,13 @@ export class AuthService {
       });
     }
 
-    if (user.status === UserStatus.pending) {
+    if (user.status === UserStatus.PENDING) {
       throw new UnauthorizedException(
         "Your account is pending approval by an administrator.",
       );
     }
 
-    if (user.status === UserStatus.rejected) {
+    if (user.status === UserStatus.REJECTED) {
       throw new UnauthorizedException(
         "Your account has been rejected or suspended.",
       );
@@ -157,13 +157,13 @@ export class AuthService {
     if (!isPasswordValid)
       throw new UnauthorizedException("Invalid credentials");
 
-    if (user.status === UserStatus.pending) {
+    if (user.status === UserStatus.PENDING) {
       throw new UnauthorizedException(
         "Your account is pending approval by an administrator.",
       );
     }
 
-    if (user.status === UserStatus.rejected) {
+    if (user.status === UserStatus.REJECTED) {
       throw new UnauthorizedException(
         "Your account has been rejected or suspended.",
       );
@@ -186,13 +186,13 @@ export class AuthService {
 
       if (!user) throw new UnauthorizedException("User not found");
 
-      if (user.status === UserStatus.pending) {
+      if (user.status === UserStatus.PENDING) {
         throw new UnauthorizedException(
           "Your account is pending approval by an administrator.",
         );
       }
 
-      if (user.status === UserStatus.rejected) {
+      if (user.status === UserStatus.REJECTED) {
         throw new UnauthorizedException(
           "Your account has been rejected or suspended.",
         );

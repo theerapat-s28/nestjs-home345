@@ -22,7 +22,7 @@ export class CreateNotificationDto {
 
   @ApiProperty({
     enum: NotificationType,
-    example: NotificationType.info,
+    example: NotificationType.INFO,
     description:
       "info: news/announcements | task: task assignments | event: event assignments | approval: approval requests | client_external: external client notifications | system: system-generated",
   })

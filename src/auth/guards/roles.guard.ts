@@ -28,8 +28,8 @@ export class RolesGuard implements CanActivate {
     ]);
 
     if (!requiredRoles) {
-      // Default: Allow if user has 'admin' or 'user' (employee) role
-      return user.role === Role.admin || user.role === Role.user;
+      // Default: Allow if user has 'ADMIN' or 'USER' (employee) role
+      return user.role === Role.ADMIN || user.role === Role.USER;
     }
 
     return requiredRoles.includes(user.role);

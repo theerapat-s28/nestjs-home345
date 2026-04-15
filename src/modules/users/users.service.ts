@@ -22,7 +22,7 @@ export class UsersService {
       where: {
         id,
         deletedAt: null,
-        role: Role.user,
+        role: Role.USER,
       },
       include: this.defaultInclude,
     });
@@ -109,7 +109,7 @@ export class UsersService {
 
     const where: any = {
       deletedAt: null,
-      role: Role.user,
+      role: Role.USER,
     };
 
     if (email) {

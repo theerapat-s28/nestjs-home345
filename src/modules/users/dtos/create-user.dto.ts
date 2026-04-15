@@ -16,7 +16,7 @@ export class CreateUserDto {
   password: string;
 
   @ApiProperty({
-    example: UserStatus.pending,
+    example: UserStatus.PENDING,
     enum: UserStatus,
     required: false,
   })
@@ -25,7 +25,7 @@ export class CreateUserDto {
   status?: UserStatus;
 
   @ApiProperty({
-    example: Role.user,
+    example: Role.USER,
     enum: Role,
     required: false,
   })

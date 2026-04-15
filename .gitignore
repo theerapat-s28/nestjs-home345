@@ -5,6 +5,10 @@
 /tmp
 /.vscode
 
+# Template doesn't need migration history
+/prisma/migrations/*
+!/prisma/migrations/.gitkeep
+
 # Logs
 logs
 *.log

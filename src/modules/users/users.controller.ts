@@ -29,7 +29,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @Roles(Role.admin)
+  @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.CREATED)
   @ApiCreatedResponse({ description: "Create a new user" })
   create(@Body() dto: CreateUserDto) {
@@ -51,7 +51,7 @@ export class UsersController {
   }
 
   @Patch(":id")
-  @Roles(Role.admin)
+  @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ description: "Update a user by ID" })
   update(@Param("id") id: string, @Body() dto: UpdateUserDto) {
@@ -59,7 +59,7 @@ export class UsersController {
   }
 
   @Delete(":id")
-  @Roles(Role.admin)
+  @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ description: "Soft delete a user by ID" })
   remove(@Param("id") id: string) {

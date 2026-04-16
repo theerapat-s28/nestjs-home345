@@ -17,6 +17,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { Admin } from '@auth/decorators/admin.decorator';
 import { AssetsService } from './assets.service';
 import { CreateAssetDto } from './dtos/create-asset.dto';
 import { UpdateAssetDto } from './dtos/update-asset.dto';
@@ -33,7 +34,7 @@ export class AssetsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new global asset definition (admin only)' })
+  @ApiOperation({ summary: 'Create a new global asset definition' })
   create(@Request() req: any, @Body() dto: CreateAssetDto) {
     return this.assetsService.create(dto);
   }
@@ -52,18 +53,19 @@ export class AssetsController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update an asset (admin only)' })
+  @ApiOperation({ summary: 'Update an asset' })
   @ApiParam({ name: 'id', description: 'Asset UUID' })
-  update(@Request() req: any, @Param('id') id: string, @Body() dto: UpdateAssetDto) {
-    return this.assetsService.update(id, dto, req.user.role);
+  update(@Param('id') id: string, @Body() dto: UpdateAssetDto) {
+    return this.assetsService.update(id, dto);
   }
 
   @Delete(':id')
+  @Admin()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Soft-delete an asset (admin only)' })
   @ApiParam({ name: 'id', description: 'Asset UUID' })
-  remove(@Request() req: any, @Param('id') id: string) {
-    return this.assetsService.remove(id, req.user.role);
+  remove(@Param('id') id: string) {
+    return this.assetsService.remove(id);
   }
 
   // ── Price history ──────────────────────────────────────────────────────────

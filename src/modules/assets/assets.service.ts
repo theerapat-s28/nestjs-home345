@@ -1,12 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
-import { Role } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { CreateAssetDto } from './dtos/create-asset.dto';
 import { UpdateAssetDto } from './dtos/update-asset.dto';
 import { QueryAssetDto } from './dtos/query-asset.dto';
 import { CreateAssetPriceDto } from './dtos/create-asset-price.dto';
 
 // ── Select shapes ─────────────────────────────────────────────────────────────
+
+const priceSelect = {
+  id: true,
+  price: true,
+  currency: true,
+  source: true,
+  recordedAt: true,
+} satisfies Prisma.AssetPriceSelect;
 
 const assetSelect = {
   id: true,
@@ -16,15 +24,12 @@ const assetSelect = {
   isActive: true,
   createdAt: true,
   updatedAt: true,
-};
-
-const priceSelect = {
-  id: true,
-  price: true,
-  currency: true,
-  source: true,
-  recordedAt: true,
-};
+  prices: {
+    take: 1,
+    orderBy: { recordedAt: 'desc' as const },
+    select: priceSelect,
+  },
+} satisfies Prisma.AssetSelect;
 
 @Injectable()
 export class AssetsService {
@@ -74,8 +79,7 @@ export class AssetsService {
     return this.ensureExists(id);
   }
 
-  async update(id: string, dto: UpdateAssetDto, userRole: Role) {
-    this.assertAdmin(userRole);
+  async update(id: string, dto: UpdateAssetDto) {
     await this.ensureExists(id);
     const updated = await this.prisma.asset.update({
       where: { id },
@@ -85,8 +89,7 @@ export class AssetsService {
     return { message: 'Asset updated successfully', data: updated };
   }
 
-  async remove(id: string, userRole: Role) {
-    this.assertAdmin(userRole);
+  async remove(id: string) {
     await this.ensureExists(id);
     await this.prisma.asset.update({
       where: { id },
@@ -141,7 +144,4 @@ export class AssetsService {
     return asset;
   }
 
-  private assertAdmin(role: Role) {
-    if (role !== Role.ADMIN) throw new NotFoundException('Asset not found');
-  }
 }

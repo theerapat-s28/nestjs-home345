@@ -66,12 +66,19 @@ model User {
 
 //================ USER PROFILE =================//
 
+// Frontend theme
+enum Theme {
+  ROOT        // Default theme
+  DEEP_NIGHT  // Dark theme
+}
+
 model UserProfile {
   id              String  @id @default(uuid())
   name            String?
   profileImageUrl String?
   bio             String? // Short personal bio / description
   userId          String  @unique
+  theme           Theme   @default(ROOT)
 
   // Timestamps
   createdAt DateTime @default(now()) @db.Timestamptz

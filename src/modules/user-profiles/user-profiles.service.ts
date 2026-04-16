@@ -8,15 +8,15 @@ export class UserProfilesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateProfileDto) {
-    const { profileImageUrl, userId } = dto;
+    const { userId, ...profileData } = dto;
 
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: {
         profile: {
           upsert: {
-            create: { profileImageUrl },
-            update: { profileImageUrl },
+            create: profileData,
+            update: profileData,
           },
         },
       },
@@ -49,15 +49,15 @@ export class UserProfilesService {
   }
 
   async update(userId: string, dto: UpdateProfileDto) {
-    const { profileImageUrl } = dto;
+    const { userId: _, ...profileData } = dto;
 
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: {
         profile: {
           upsert: {
-            create: { profileImageUrl },
-            update: { profileImageUrl },
+            create: profileData as any,
+            update: profileData,
           },
         },
       },

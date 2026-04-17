@@ -73,7 +73,8 @@ Error responses:
 ```
 Portfolio Owner:
 1. GET /portfolios                     ->  list my portfolios, find :id
-2. POST /portfolios/:id/members        ->  invite user { userId, role: "EDITOR" }
+2. POST /portfolios/:id/members/by-email -> invite user { email, role: "EDITOR" }
+   (Alternatively) POST /portfolios/:id/members -> invite user { userId, role: "EDITOR" }
 
 Invited User:
 3. GET /portfolios                     ->  sees portfolio with myStatus: "PENDING"
@@ -215,6 +216,18 @@ Manage investment portfolios and team members.
 - **Body**: `{ "userId": "uuid", "role": "EDITOR" }`
 - **Access**: Requires `OWNER` role.
 - **Behavior**: Creates membership with `PENDING` status. If user was previously removed, re-inviting resets their status to `PENDING`.
+
+### Invite Member by Email
+
+`POST /portfolios/:id/members/by-email`
+
+- **Body**: `{ "email": "user@example.com", "role": "EDITOR" }`
+- **Access**: Requires `OWNER` role.
+- **Response**: `201 Created`
+- **Behavior**: 
+  - Verifies if a user with the given email exists.
+  - If user not found, returns `404 Not Found`.
+  - Creates/updates membership with `PENDING` status.
 
 ### Update Member Role
 

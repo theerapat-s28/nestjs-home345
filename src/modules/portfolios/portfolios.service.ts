@@ -8,6 +8,7 @@ import { MemberStatus, PortfolioRole } from '@prisma/client';
 import { CreatePortfolioDto } from './dtos/create-portfolio.dto';
 import { UpdatePortfolioDto } from './dtos/update-portfolio.dto';
 import { InviteMemberDto } from './dtos/invite-member.dto';
+import { AddMemberByEmailDto } from './dtos/add-member-by-email.dto';
 import { UpdateMemberRoleDto } from './dtos/update-member-role.dto';
 
 // ── Select shapes ────────────────────────────────────────────────────────────
@@ -148,6 +149,29 @@ export class PortfoliosService {
     return { message: 'Member added successfully', data: member };
   }
 
+  async addMemberByEmail(portfolioId: string, userId: string, dto: AddMemberByEmailDto) {
+    await this.assertAccess(portfolioId, userId, PortfolioRole.OWNER);
+
+    // Verify target user exists by email
+    const targetUser = await this.prisma.user.findFirst({
+      where: { email: dto.email, deletedAt: null },
+      select: { id: true, username: true, email: true },
+    });
+    
+    if (!targetUser) {
+      throw new NotFoundException(`User with email "${dto.email}" not found`);
+    }
+
+    const member = await this.prisma.portfolioMember.upsert({
+      where: { userId_portfolioId: { userId: targetUser.id, portfolioId } },
+      create: { portfolioId, userId: targetUser.id, role: dto.role, status: MemberStatus.PENDING },
+      update: { role: dto.role, status: MemberStatus.PENDING }, // Reset to pending if re-invited
+      select: memberSelect,
+    });
+
+    return { message: `Member "${targetUser.email}" added successfully`, data: member };
+  }
+
   async updateMemberRole(portfolioId: string, userId: string, targetUserId: string, dto: UpdateMemberRoleDto) {
     await this.assertAccess(portfolioId, userId, PortfolioRole.OWNER);
     if (userId === targetUserId) throw new ForbiddenException('Cannot change your own role');
@@ -212,7 +236,7 @@ export class PortfoliosService {
     await this.assertAccess(portfolioId, userId, PortfolioRole.VIEWER);
 
     const holdings = await this.prisma.portfolioAsset.findMany({
-      where: { portfolioId, deletedAt: null },
+      where: { portfolioId, deletedAt: null, quantity: { gt: 0 } },
       select: holdingSelect,
       orderBy: { createdAt: 'asc' },
     });

@@ -21,6 +21,7 @@ import { CreatePortfolioDto } from './dtos/create-portfolio.dto';
 import { UpdatePortfolioDto } from './dtos/update-portfolio.dto';
 import { InviteMemberDto } from './dtos/invite-member.dto';
 import { UpdateMemberRoleDto } from './dtos/update-member-role.dto';
+import { AddMemberByEmailDto } from './dtos/add-member-by-email.dto';
 
 @ApiTags('Portfolios')
 @ApiBearerAuth('access-token')
@@ -73,6 +74,14 @@ export class PortfoliosController {
   @ApiParam({ name: 'id', description: 'Portfolio UUID' })
   inviteMember(@Request() req: any, @Param('id') id: string, @Body() dto: InviteMemberDto) {
     return this.portfoliosService.inviteMember(id, req.user.id, dto);
+  }
+
+  @Post(':id/members/by-email')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Invite a member to the portfolio by email (OWNER only)' })
+  @ApiParam({ name: 'id', description: 'Portfolio UUID' })
+  addMemberByEmail(@Request() req: any, @Param('id') id: string, @Body() dto: AddMemberByEmailDto) {
+    return this.portfoliosService.addMemberByEmail(id, req.user.id, dto);
   }
 
   @Patch(':id/members/:userId')

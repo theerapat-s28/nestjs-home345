@@ -46,6 +46,9 @@ model User {
   status          UserStatus @default(PENDING)
   lastLoginAt     DateTime?  @db.Timestamptz
 
+  // Access
+  hasHome345Access Boolean   @default(false)      // allow user to access home345 module
+
   // Timestamps
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now()) @db.Timestamptz
@@ -532,4 +535,68 @@ enum CashTxnType {
   DIVIDEND     // dividend payment received
   FEE          // fee charged
   TRANSFER     // internal transfer between portfolios
+}
+
+//=============================================================
+// HOME345 BILL MODULE
+//=============================================================
+
+enum BillCategory {
+  HOME_LOAN
+  ELECTRIC
+  WATER
+  INTERNET
+  OTHER
+}
+
+model Home345Bill {
+  id          String   @id @default(uuid())
+  seq         Int
+  name        String
+  date        DateTime? @db.Date
+
+  isCompleted Boolean  @default(false)
+
+  // --- Timestamps ---
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  // --- Relations ---
+  billItems Home345BillItem[]
+
+  @@index([date])
+  @@map("home345_bills")
+}
+
+model Home345BillItem {
+  id       String       @id @default(uuid())
+  billId   String
+  category BillCategory
+  amount   Decimal      @db.Decimal(10, 2)
+  date     DateTime? @db.Date
+  isPaid   Boolean      @default(false)
+  note     String?
+
+  // --- Timestamps ---
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  // --- Relations ---
+  bill Home345Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@index([billId])
+  @@map("home345_bill_items")
+}
+
+model Home345Transaction {
+  id     String  @id @default(uuid())
+  name   String
+  amount Decimal @db.Decimal(10, 2)
+  note   String?
+
+  // --- Timestamps ---
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@map("home345_transactions")
 }

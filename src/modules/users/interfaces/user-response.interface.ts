@@ -7,6 +7,7 @@ export interface UserInterfaceResponse {
   role: Role;
   status: UserStatus;
 
+  hasHome345Access: boolean;
   isActive: boolean;
   isResetPassword: boolean;
   lastLoginAt?: Date | null;

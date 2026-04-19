@@ -29,7 +29,12 @@ const memberSelect = {
   status: true,
   createdAt: true,
   user: {
-    select: { id: true, username: true, email: true },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      profile: { select: { name: true } },
+    },
   },
 };
 

@@ -28,6 +28,7 @@ import { PortfoliosModule } from '@modules/portfolios/portfolios.module';
 import { AssetsModule } from '@modules/assets/assets.module';
 import { TransactionsModule } from '@modules/transactions/transactions.module';
 import { PortfolioCashModule } from '@modules/portfolio-cash/portfolio-cash.module';
+import { Home345BillsModule } from '@modules/home345-bills/home345-bills.module';
 
 @Module({
   imports: [
@@ -75,6 +76,9 @@ import { PortfolioCashModule } from '@modules/portfolio-cash/portfolio-cash.modu
     AssetsModule,
     TransactionsModule,
     PortfolioCashModule,
+
+    // ─── Home345 ──────────────────────────────────────────────────────────────
+    Home345BillsModule,
   ],
 
   controllers: [AppController],

@@ -82,6 +82,7 @@ export class AuthService {
           password: null,
           role: Role.USER,
           status: UserStatus.PENDING,
+          hasHome345Access: false,
           profile: {
             create: {
               profileImageUrl: null,
@@ -120,7 +121,7 @@ export class AuthService {
       name: user.profile?.name ?? null,
       bio: user.profile?.bio ?? null,
       profileImageUrl: user.profile?.profileImageUrl ?? null,
-      theme: user.profile?.theme ?? 'ROOT',
+      theme: user.profile?.theme ?? "ROOT",
     };
   }
 

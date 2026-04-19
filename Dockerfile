@@ -30,3 +30,7 @@ EXPOSE 3000
 
 # Command to run the application (automatically run migrations deploy)
 CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/src/main"]
+
+
+# docker build -t ghcr.io/theerapat-s28/nestjs-home345:0.1.0 .
+# docker push ghcr.io/theerapat-s28/nestjs-home345:0.1.0

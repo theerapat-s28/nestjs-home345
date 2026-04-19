@@ -116,6 +116,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       status: user.status,
+      hasHome345Access: user.hasHome345Access ?? false,
       name: user.profile?.name ?? null,
       bio: user.profile?.bio ?? null,
       profileImageUrl: user.profile?.profileImageUrl ?? null,

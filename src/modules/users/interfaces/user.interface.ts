@@ -9,6 +9,7 @@ export interface User {
   role: Role;
   status: UserStatus;
   lastLoginAt?: Date | null;
+  hasHome345Access: boolean;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

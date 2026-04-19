@@ -25,6 +25,10 @@ lerna-debug.log*
 .env.production
 .env.prod.docker
 
+# Claude MCP
+/.claude
+.mcp.json
+
 # temp directory
 .temp
 .tmp

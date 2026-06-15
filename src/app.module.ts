@@ -49,7 +49,8 @@ import * as path from "path";
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const uploadDir = configService.get<string>("LOCAL_UPLOADS_DEST") || "uploads";
+        const uploadDir =
+          configService.get<string>("LOCAL_UPLOADS_DEST") || "uploads";
         return [
           {
             rootPath: path.join(process.cwd(), uploadDir),

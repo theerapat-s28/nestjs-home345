@@ -27,7 +27,8 @@ import { LocalStorageController } from "./local-storage.controller";
           },
           filename: (req, file, callback) => {
             // Generate a unique filename: timestamp-randomId.extension
-            const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+            const uniqueSuffix =
+              Date.now() + "-" + Math.round(Math.random() * 1e9);
             const ext = extname(file.originalname);
             callback(null, `${uniqueSuffix}${ext}`);
           },

@@ -74,7 +74,11 @@ export class ItemsController {
   @Patch(":id")
   @ApiOperation({ summary: "Update an item (owner or admin only)" })
   @ApiParam({ name: "id", description: "Item UUID" })
-  update(@Request() req: any, @Param("id") id: string, @Body() dto: UpdateItemDto) {
+  update(
+    @Request() req: any,
+    @Param("id") id: string,
+    @Body() dto: UpdateItemDto,
+  ) {
     return this.itemsService.update(id, req.user.id, req.user.role, dto);
   }
 

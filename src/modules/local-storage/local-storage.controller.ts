@@ -5,7 +5,6 @@ import {
   UploadedFile,
   UploadedFiles,
   BadRequestException,
-  Request,
   Query,
 } from "@nestjs/common";
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";

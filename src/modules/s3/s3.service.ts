@@ -46,7 +46,8 @@ export class S3Service {
 
   constructor(private readonly configService: ConfigService) {
     const region = this.configService.getOrThrow<string>("AWS_REGION");
-    const accessKeyId = this.configService.getOrThrow<string>("AWS_ACCESS_KEY_ID");
+    const accessKeyId =
+      this.configService.getOrThrow<string>("AWS_ACCESS_KEY_ID");
     const secretAccessKey = this.configService.getOrThrow<string>(
       "AWS_SECRET_ACCESS_KEY",
     );

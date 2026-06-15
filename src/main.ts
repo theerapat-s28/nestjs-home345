@@ -15,13 +15,16 @@ import { ResponseInterceptor } from "@core/interceptor/response.interceptor";
 async function bootstrap() {
   const logger = new Logger("Bootstrap");
   const configService = new ConfigService();
-  
+
   // Try to get port from BACKEND_URL first, then fallback to PORT environment variable
-  const backendUrl = configService.get<string>("BACKEND_URL") || "http://localhost:3000";
+  const backendUrl =
+    configService.get<string>("BACKEND_URL") || "http://localhost:3000";
   let apiPort: number;
   try {
     const parsedUrl = new URL(backendUrl);
-    apiPort = parsedUrl.port ? parseInt(parsedUrl.port, 10) : (configService.get<number>("PORT") || 3000);
+    apiPort = parsedUrl.port
+      ? parseInt(parsedUrl.port, 10)
+      : configService.get<number>("PORT") || 3000;
   } catch {
     apiPort = configService.get<number>("PORT") || 3000;
   }

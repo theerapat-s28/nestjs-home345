@@ -84,7 +84,7 @@ export class WebsocketGateway
         );
       } else if (this.isDevBypass()) {
         const userId = "dev-bypass-user-id";
-        client.data.user = { id: userId, username: "dev-admin", role: "admin" };
+        client.data.user = { id: userId, username: "dev-admin", role: "ADMIN" };
         client.join(userId);
         this.logger.warn(`Client connected (dev-bypass): ${client.id}`);
       } else {

@@ -37,3 +37,8 @@ lerna-debug.log*
 
 # Except these (keep these)
 !*.gitkeep
+
+# AI related
+.agents/skills
+.claude/skills
+skills-lock.json

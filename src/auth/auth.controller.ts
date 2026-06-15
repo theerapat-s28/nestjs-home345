@@ -23,6 +23,7 @@ import { Role } from "@prisma/client";
 import { AuthResponseDto } from "./dtos/auth-response.dto";
 
 import { Response } from "express";
+import { parseDurationToMs } from "@common/helpers/time.util";
 
 @ApiTags("Authentication")
 @Controller("auth")
@@ -64,6 +65,12 @@ export class AuthController {
   async googleAuthRedirect(@Request() req: any, @Res() res: Response) {
     try {
       const authResult = await this.authService.validateGoogleUser(req.user);
+      const jwtExpiresIn =
+        this.configService.get<string>("JWT_EXPIRES_IN") || "7d";
+      const cookieMaxAge = parseDurationToMs(
+        jwtExpiresIn,
+        7 * 24 * 60 * 60 * 1000,
+      );
 
       // Set state to check if the request came from Swagger UI
       const isSwaggerRequest = req.query.state === "swagger";
@@ -75,7 +82,7 @@ export class AuthController {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "lax",
-          maxAge: 24 * 60 * 60 * 1000, // 1 day
+          maxAge: cookieMaxAge,
         });
 
         // Redirect back to Swagger UI
@@ -102,7 +109,7 @@ export class AuthController {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax", // Allow cross-site cookie
         domain: cookieDomain,
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        maxAge: cookieMaxAge,
       });
 
       // Redirect to frontend callback page

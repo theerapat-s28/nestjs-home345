@@ -6,6 +6,19 @@
 
 ---
 
+## Syntax Check (Required)
+
+After every code change, always verify syntax before considering the task complete:
+
+```bash
+pnpm lint          # ESLint — catch syntax and style errors
+pnpm build         # TypeScript compile — catch type errors
+```
+
+Run both. Fix all errors before finishing. Never skip this step.
+
+---
+
 ## Commands
 
 ```bash

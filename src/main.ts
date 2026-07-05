@@ -47,9 +47,24 @@ async function bootstrap() {
     }),
   );
 
+  // Build allowed origins: webapp frontend + optional browser extension
+  const allowedOrigins = [
+    configService.get<string>("FRONTEND_URL") || "http://localhost:4200",
+    "http://localhost:5000",
+  ];
+  const extensionOrigin = configService.get<string>("EXTENSION_ORIGIN");
+  if (extensionOrigin) allowedOrigins.push(extensionOrigin);
+
   app.enableCors({
-    origin:
-      configService.get<string>("FRONTEND_URL") || "http://localhost:4200",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. server-to-server, curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin '${origin}' not allowed`));
+      }
+    },
     credentials: true,
   });
   // ---------------- SWAGGER DOCUMENT ----------------

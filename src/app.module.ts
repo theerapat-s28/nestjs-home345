@@ -21,14 +21,15 @@ import * as path from "path";
 // ─── Personal Project Feature Modules ─────────────────────────────────────────
 // Import your own feature modules here following the same pattern:
 // import { ItemsModule } from "@modules/items/items.module";
-import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
-import { PaymentMethodsModule } from './modules/payment-methods/payment-methods.module';
-import { RemindersModule } from './modules/reminders/reminders.module';
-import { PortfoliosModule } from '@modules/portfolios/portfolios.module';
-import { AssetsModule } from '@modules/assets/assets.module';
-import { TransactionsModule } from '@modules/transactions/transactions.module';
-import { PortfolioCashModule } from '@modules/portfolio-cash/portfolio-cash.module';
-import { Home345BillsModule } from '@modules/home345-bills/home345-bills.module';
+import { SubscriptionsModule } from "./modules/subscriptions/subscriptions.module";
+import { PaymentMethodsModule } from "./modules/payment-methods/payment-methods.module";
+import { RemindersModule } from "./modules/reminders/reminders.module";
+import { PortfoliosModule } from "@modules/portfolios/portfolios.module";
+import { AssetsModule } from "@modules/assets/assets.module";
+import { TransactionsModule } from "@modules/transactions/transactions.module";
+import { PortfolioCashModule } from "@modules/portfolio-cash/portfolio-cash.module";
+import { Home345BillsModule } from "@modules/home345-bills/home345-bills.module";
+import { NotesModule } from "@modules/notes/notes.module";
 
 @Module({
   imports: [
@@ -80,6 +81,9 @@ import { Home345BillsModule } from '@modules/home345-bills/home345-bills.module'
 
     // ─── Home345 ──────────────────────────────────────────────────────────────
     Home345BillsModule,
+
+    // ─── Public Notes ─────────────────────────────────────────────────────────
+    NotesModule,
   ],
 
   controllers: [AppController],

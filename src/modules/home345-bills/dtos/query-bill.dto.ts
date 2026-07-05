@@ -10,14 +10,20 @@ export class QueryBillDto {
   @Transform(({ value }) => parseInt(value, 10))
   limit?: number = 10;
 
-  @ApiPropertyOptional({ example: 0, description: "Records to skip (default: 0)" })
+  @ApiPropertyOptional({
+    example: 0,
+    description: "Records to skip (default: 0)",
+  })
   @IsInt()
   @Min(0)
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   offset?: number = 0;
 
-  @ApiPropertyOptional({ example: false, description: "Filter by completion status" })
+  @ApiPropertyOptional({
+    example: false,
+    description: "Filter by completion status",
+  })
   @IsBoolean()
   @IsOptional()
   @Transform(({ value }) => value === "true" || value === true)

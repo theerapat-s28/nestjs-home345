@@ -1,9 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { PortfolioRole } from '@prisma/client';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsEnum, IsNotEmpty, IsString } from "class-validator";
+import { PortfolioRole } from "@prisma/client";
 
 export class InviteMemberDto {
-  @ApiProperty({ example: 'user-uuid-here' })
+  @ApiProperty({ example: "user-uuid-here" })
   @IsString()
   @IsNotEmpty()
   userId: string;

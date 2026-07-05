@@ -20,11 +20,11 @@ enum UserStatus {
 }
 
 enum NotificationType {
-  INFO     // General news or announcements
-  TASK     // Task / work assignments
-  EVENT    // Calendar event invitations
+  INFO // General news or announcements
+  TASK // Task / work assignments
+  EVENT // Calendar event invitations
   APPROVAL // Approval requests (e.g. content, access)
-  SYSTEM   // System-generated messages
+  SYSTEM // System-generated messages
 }
 
 // ISO 4217 currency codes — extend as needed
@@ -47,7 +47,7 @@ model User {
   lastLoginAt     DateTime?  @db.Timestamptz
 
   // Access
-  hasHome345Access Boolean   @default(false)      // allow user to access home345 module
+  hasHome345Access Boolean @default(false) // allow user to access home345 module
 
   // Timestamps
   isActive  Boolean   @default(true)
@@ -71,8 +71,8 @@ model User {
 
 // Frontend theme
 enum Theme {
-  ROOT        // Default theme
-  DEEP_NIGHT  // Dark theme
+  ROOT // Default theme
+  DEEP_NIGHT // Dark theme
 }
 
 model UserProfile {
@@ -96,9 +96,9 @@ model UserProfile {
 //================ DOCUMENTS =================//
 
 /**
- * Generic document record.  The S3 key is stored here; the actual file
- * lives in S3.  Attach documents to any entity via DocumentLink.
- */
+* Generic document record.  The S3 key is stored here; the actual file
+* lives in S3.  Attach documents to any entity via DocumentLink.
+*/
 model Document {
   id          String  @id @default(uuid())
   name        String
@@ -117,11 +117,11 @@ model Document {
 }
 
 /**
- * Polymorphic join table: attaches a Document to any entity.
- *
- * Add new entity types to DocumentEntityType as your project grows.
- * Example: add `item`, `post`, `report` etc.
- */
+* Polymorphic join table: attaches a Document to any entity.
+*
+* Add new entity types to DocumentEntityType as your project grows.
+* Example: add `item`, `post`, `report` etc.
+*/
 enum DocumentEntityType {
   USER_PROFILE
   OTHER
@@ -151,7 +151,7 @@ model Notification {
   title    String
   message  String?
   type     NotificationType
-  data     Json?            // Arbitrary metadata — use for deep-link payloads etc.
+  data     Json? // Arbitrary metadata — use for deep-link payloads etc.
   senderId String?
 
   // Timestamps
@@ -215,8 +215,6 @@ enum NotificationChannel {
   SMS
 }
 
-
-
 model Subscription {
   id          String  @id @default(uuid())
   userId      String
@@ -232,16 +230,16 @@ model Subscription {
 
   // --- Payment ---
   paymentMethodId String?
-  
+
   // --- Auto Timestamps ---
   createdAt DateTime  @default(now()) @db.Timestamptz
   updatedAt DateTime  @updatedAt @db.Timestamptz
   deletedAt DateTime? @db.Timestamptz
 
   // --- Relation ---
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
-  reminders Reminder[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
+  reminders     Reminder[]
 
   // Indexes for common query patterns
   @@index([nextBillingDate]) // Reminder job: WHERE nextBillingDate <= now() + N days
@@ -251,20 +249,20 @@ model Subscription {
 }
 
 model PaymentMethod {
-  id       String @id @default(uuid())
+  id       String      @id @default(uuid())
   userId   String
   type     PaymentType
   provider String? // VISA, Mastercard, etc.
   last4    String? // Last 4 digits only — never store full card numbers
   name     String? // "My main card"
-  
+
   // --- Auto Timestamps ---
   createdAt DateTime  @default(now()) @db.Timestamptz
   updatedAt DateTime  @updatedAt @db.Timestamptz
   deletedAt DateTime? @db.Timestamptz
 
   // --- Relation ---
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   subscriptions Subscription[]
 
   @@index([deletedAt])
@@ -272,10 +270,10 @@ model PaymentMethod {
 }
 
 model Reminder {
-  id             String       @id @default(uuid())
+  id             String              @id @default(uuid())
   subscriptionId String
-  daysBefore Int // e.g. 3 = remind 3 days before nextBillingDate
-  channel    NotificationChannel // How to deliver the reminder
+  daysBefore     Int // e.g. 3 = remind 3 days before nextBillingDate
+  channel        NotificationChannel // How to deliver the reminder
 
   // --- Delivery tracking ---
   isSent Boolean   @default(false) // Prevents duplicate sends
@@ -284,7 +282,7 @@ model Reminder {
   createdAt DateTime @default(now()) @db.Timestamptz
 
   // --- Relation ---
-  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
   // A subscription should have at most one reminder rule per (daysBefore + channel) combo
   @@unique([subscriptionId, daysBefore, channel])
@@ -330,11 +328,11 @@ model PortfolioMember {
   status      MemberStatus  @default(PENDING)
 
   // --- Relations ---
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
 
   // --- Timestamps ---
-  createdAt   DateTime @default(now()) @db.Timestamptz
+  createdAt DateTime @default(now()) @db.Timestamptz
 
   @@unique([userId, portfolioId])
   @@map("portfolio_members")
@@ -347,7 +345,7 @@ enum PortfolioRole {
 }
 
 enum MemberStatus {
-  PENDING     // invited but not accepted
+  PENDING // invited but not accepted
   ACTIVE
   REVOKED
 }
@@ -357,14 +355,14 @@ enum MemberStatus {
 //////////////////////////////////////////////////////
 
 model Asset {
-  id        String    @id @default(uuid())
-  symbol    String    // BTC, AAPL, XAU
-  name      String    // Bitcoin, Apple, Gold
-  type      AssetType
+  id     String    @id @default(uuid())
+  symbol String // BTC, AAPL, XAU
+  name   String // Bitcoin, Apple, Gold
+  type   AssetType
 
   // --- Relations ---
-  prices    AssetPrice[]
-  holdings  PortfolioAsset[]
+  prices   AssetPrice[]
+  holdings PortfolioAsset[]
 
   // --- Timestamps ---
   isActive  Boolean   @default(true)
@@ -394,13 +392,13 @@ enum AssetType {
 model AssetPrice {
   id         String   @id @default(uuid())
   assetId    String
-  price      Decimal  @db.Decimal(20, 8) 
+  price      Decimal  @db.Decimal(20, 8)
   currency   Currency @default(THB)
-  source     String?  // [#5] "binance", "yahoo", "manual", etc.
+  source     String? // [#5] "binance", "yahoo", "manual", etc.
   recordedAt DateTime @default(now()) @db.Timestamptz
 
   // --- Relations ---
-  asset      Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   @@index([assetId, recordedAt])
   @@index([currency, recordedAt]) // [#10] multi-currency price lookups
@@ -412,21 +410,21 @@ model AssetPrice {
 //////////////////////////////////////////////////////
 
 model PortfolioAsset {
-  id          String   @id @default(uuid())
+  id          String @id @default(uuid())
   portfolioId String
   assetId     String
 
   // cached values (derived from transactions)
-  quantity    Decimal  @default(0) @db.Decimal(20, 8)
-  avgCost     Decimal  @default(0) @db.Decimal(20, 8)
+  quantity Decimal @default(0) @db.Decimal(20, 8)
+  avgCost  Decimal @default(0) @db.Decimal(20, 8)
 
   // [#4] cache safety — detect stale state and prevent recalc races
   lastRecalculatedAt DateTime? @db.Timestamptz
   isRecalculating    Boolean   @default(false)
 
   // --- Relations ---
-  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
-  asset       Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  portfolio    Portfolio     @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  asset        Asset         @relation(fields: [assetId], references: [id], onDelete: Cascade)
   transactions Transaction[]
 
   // --- Timestamps ---
@@ -449,20 +447,20 @@ model Transaction {
   portfolioAssetId String
   type             TransactionType
 
-  quantity         Decimal         @db.Decimal(20, 8)
-  pricePerUnit     Decimal         @db.Decimal(20, 8)
-  currency         Currency        @default(THB) // [#3] USD, THB — currency of the quoted price
-  
-  fee              Decimal?        @db.Decimal(20, 8) // optional trading fee
-  note             String?
-  executedAt       DateTime        @db.Timestamptz
+  quantity     Decimal  @db.Decimal(20, 8)
+  pricePerUnit Decimal  @db.Decimal(20, 8)
+  currency     Currency @default(THB) // [#3] USD, THB — currency of the quoted price
+
+  fee        Decimal? @db.Decimal(20, 8) // optional trading fee
+  note       String?
+  executedAt DateTime @db.Timestamptz
 
   // --- Relations ---
-  portfolioAsset   PortfolioAsset  @relation(fields: [portfolioAssetId], references: [id], onDelete: Cascade)
-  cashTransaction  CashTransaction?
+  portfolioAsset  PortfolioAsset   @relation(fields: [portfolioAssetId], references: [id], onDelete: Cascade)
+  cashTransaction CashTransaction?
 
   // --- Timestamps ---
-  createdAt        DateTime @default(now()) @db.Timestamptz
+  createdAt DateTime @default(now()) @db.Timestamptz
 
   @@index([portfolioAssetId, executedAt])
   @@map("transactions")
@@ -471,11 +469,11 @@ model Transaction {
 enum TransactionType {
   BUY
   SELL
-  TRANSFER_IN   // [#6] asset transferred in from external wallet/broker
-  TRANSFER_OUT  // [#6] asset transferred out
-  DIVIDEND      // [#6] cash or stock dividend received
-  SPLIT         // [#6] stock split — quantity changes, cost basis does not
-  FEE           // [#6] standalone fee/charge
+  TRANSFER_IN // [#6] asset transferred in from external wallet/broker
+  TRANSFER_OUT // [#6] asset transferred out
+  DIVIDEND // [#6] cash or stock dividend received
+  SPLIT // [#6] stock split — quantity changes, cost basis does not
+  FEE // [#6] standalone fee/charge
 }
 
 //////////////////////////////////////////////////////
@@ -489,10 +487,10 @@ model PortfolioCash {
   balance     Decimal  @default(0) @db.Decimal(20, 8)
 
   // --- Relations ---
-  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
 
   // --- Timestamps ---
-  updatedAt   DateTime @updatedAt @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
 
   @@unique([portfolioId, currency])
   @@map("portfolio_cash")
@@ -503,24 +501,24 @@ model PortfolioCash {
 //////////////////////////////////////////////////////
 
 model CashTransaction {
-  id           String       @id @default(uuid())
-  portfolioId  String
-  currency     Currency     @default(THB)
-  type         CashTxnType
-  amount       Decimal      @db.Decimal(20, 8) // positive = money in, negative = money out
+  id          String      @id @default(uuid())
+  portfolioId String
+  currency    Currency    @default(THB)
+  type        CashTxnType
+  amount      Decimal     @db.Decimal(20, 8) // positive = money in, negative = money out
 
   // optional back-link to the trade that caused this cash movement
   relatedTxnId String?      @unique
   relatedTxn   Transaction? @relation(fields: [relatedTxnId], references: [id], onDelete: SetNull)
 
-  note         String?
-  executedAt   DateTime     @db.Timestamptz
+  note       String?
+  executedAt DateTime @db.Timestamptz
 
   // --- Relations ---
-  portfolio    Portfolio    @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
 
   // --- Timestamps ---
-  createdAt    DateTime @default(now()) @db.Timestamptz
+  createdAt DateTime @default(now()) @db.Timestamptz
 
   @@index([portfolioId, executedAt])
   @@index([currency, executedAt]) // [#10] per-currency cash flow queries
@@ -528,13 +526,13 @@ model CashTransaction {
 }
 
 enum CashTxnType {
-  DEPOSIT      // cash added to portfolio
-  WITHDRAWAL   // cash withdrawn
-  BUY_DEBIT    // cash deducted when buying an asset
-  SELL_CREDIT  // cash received when selling an asset
-  DIVIDEND     // dividend payment received
-  FEE          // fee charged
-  TRANSFER     // internal transfer between portfolios
+  DEPOSIT // cash added to portfolio
+  WITHDRAWAL // cash withdrawn
+  BUY_DEBIT // cash deducted when buying an asset
+  SELL_CREDIT // cash received when selling an asset
+  DIVIDEND // dividend payment received
+  FEE // fee charged
+  TRANSFER // internal transfer between portfolios
 }
 
 //=============================================================
@@ -550,12 +548,12 @@ enum BillCategory {
 }
 
 model Home345Bill {
-  id          String   @id @default(uuid())
-  seq         Int
-  name        String
-  date        DateTime? @db.Date
+  id   String    @id @default(uuid())
+  seq  Int
+  name String
+  date DateTime? @db.Date
 
-  isCompleted Boolean  @default(false)
+  isCompleted Boolean @default(false)
 
   // --- Timestamps ---
   createdAt DateTime @default(now()) @db.Timestamptz
@@ -573,7 +571,7 @@ model Home345BillItem {
   billId   String
   category BillCategory
   amount   Decimal      @db.Decimal(10, 2)
-  date     DateTime? @db.Date
+  date     DateTime?    @db.Date
   isPaid   Boolean      @default(false)
   note     String?
 
@@ -599,4 +597,42 @@ model Home345Transaction {
   updatedAt DateTime @updatedAt @db.Timestamptz
 
   @@map("home345_transactions")
+}
+
+//=============================================================
+// PUBLIC NOTES
+//=============================================================
+
+model Note {
+  id        String    @id @default(uuid())
+  title     String?
+  content   String?
+  expiresAt DateTime? @db.Timestamptz // null = permanent; past = hidden by frontend
+
+  // --- Timestamps ---
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  // --- Relations ---
+  attachments NoteAttachment[]
+
+  @@index([expiresAt])
+  @@map("notes")
+}
+
+model NoteAttachment {
+  id       String  @id @default(uuid())
+  noteId   String
+  key      String  @unique // S3 object key — "notes/{noteId}/{shortId}.{ext}"
+  fileName String // original file name for Content-Disposition
+  mimeType String? // MIME type for inline vs. attachment decision
+
+  // --- Timestamps ---
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  // --- Relations ---
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
+  @@map("note_attachments")
 }

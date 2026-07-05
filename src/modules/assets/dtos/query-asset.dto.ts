@@ -1,10 +1,10 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { AssetType } from '@prisma/client';
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsEnum, IsOptional, IsString } from "class-validator";
+import { Transform } from "class-transformer";
+import { AssetType } from "@prisma/client";
 
 export class QueryAssetDto {
-  @ApiPropertyOptional({ example: 'BTC' })
+  @ApiPropertyOptional({ example: "BTC" })
   @IsString()
   @IsOptional()
   search?: string;

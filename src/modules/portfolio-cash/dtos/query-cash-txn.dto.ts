@@ -1,7 +1,7 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { Currency, CashTxnType } from '@prisma/client';
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsEnum, IsOptional } from "class-validator";
+import { Transform } from "class-transformer";
+import { Currency, CashTxnType } from "@prisma/client";
 
 export class QueryCashTxnDto {
   @ApiPropertyOptional({ enum: CashTxnType })

@@ -10,7 +10,10 @@ export class QueryTransactionDto {
   @Transform(({ value }) => parseInt(value, 10))
   limit?: number = 10;
 
-  @ApiPropertyOptional({ example: 0, description: "Records to skip (default: 0)" })
+  @ApiPropertyOptional({
+    example: 0,
+    description: "Records to skip (default: 0)",
+  })
   @IsInt()
   @Min(0)
   @IsOptional()

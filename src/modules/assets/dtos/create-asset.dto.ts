@@ -1,15 +1,15 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
-import { AssetType } from '@prisma/client';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsEnum, IsNotEmpty, IsString, MaxLength } from "class-validator";
+import { AssetType } from "@prisma/client";
 
 export class CreateAssetDto {
-  @ApiProperty({ example: 'BTC' })
+  @ApiProperty({ example: "BTC" })
   @IsString()
   @IsNotEmpty()
   @MaxLength(20)
   symbol: string;
 
-  @ApiProperty({ example: 'Bitcoin' })
+  @ApiProperty({ example: "Bitcoin" })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)

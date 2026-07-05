@@ -1,7 +1,7 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { TransactionType } from '@prisma/client';
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsEnum, IsOptional } from "class-validator";
+import { Transform } from "class-transformer";
+import { TransactionType } from "@prisma/client";
 
 export class QueryTransactionDto {
   @ApiPropertyOptional({ enum: TransactionType })

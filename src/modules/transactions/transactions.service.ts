@@ -1,9 +1,13 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@core/prisma/prisma.service';
-import { CashTxnType, PortfolioRole, TransactionType } from '@prisma/client';
-import { PortfoliosService } from '@modules/portfolios/portfolios.service';
-import { CreateTransactionDto } from './dtos/create-transaction.dto';
-import { QueryTransactionDto } from './dtos/query-transaction.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { PrismaService } from "@core/prisma/prisma.service";
+import { CashTxnType, PortfolioRole, TransactionType } from "@prisma/client";
+import { PortfoliosService } from "@modules/portfolios/portfolios.service";
+import { CreateTransactionDto } from "./dtos/create-transaction.dto";
+import { QueryTransactionDto } from "./dtos/query-transaction.dto";
 
 // ── Select shapes ─────────────────────────────────────────────────────────────
 
@@ -23,7 +27,9 @@ const txnSelect = {
       asset: { select: { id: true, symbol: true, name: true, type: true } },
     },
   },
-  cashTransaction: { select: { id: true, type: true, amount: true, currency: true } },
+  cashTransaction: {
+    select: { id: true, type: true, amount: true, currency: true },
+  },
 };
 
 // ── Cash side-effect mapping ──────────────────────────────────────────────────
@@ -43,7 +49,11 @@ export class TransactionsService {
 
   async create(portfolioId: string, userId: string, dto: CreateTransactionDto) {
     // 1. Access check — minimum EDITOR role to record a transaction
-    await this.portfoliosService.assertAccess(portfolioId, userId, PortfolioRole.EDITOR);
+    await this.portfoliosService.assertAccess(
+      portfolioId,
+      userId,
+      PortfolioRole.EDITOR,
+    );
 
     // 2. Verify asset exists
     const asset = await this.prisma.asset.findFirst({
@@ -70,11 +80,21 @@ export class TransactionsService {
       let newAvgCost: number;
 
       if (!existingHolding) {
-        if (dto.type === TransactionType.SELL || dto.type === TransactionType.TRANSFER_OUT) {
-          throw new BadRequestException('Cannot sell or transfer out an asset you do not hold');
+        if (
+          dto.type === TransactionType.SELL ||
+          dto.type === TransactionType.TRANSFER_OUT
+        ) {
+          throw new BadRequestException(
+            "Cannot sell or transfer out an asset you do not hold",
+          );
         }
         const holding = await tx.portfolioAsset.create({
-          data: { portfolioId, assetId: dto.assetId, quantity: qty, avgCost: price },
+          data: {
+            portfolioId,
+            assetId: dto.assetId,
+            quantity: qty,
+            avgCost: price,
+          },
           select: { id: true },
         });
         holdingId = holding.id;
@@ -85,12 +105,18 @@ export class TransactionsService {
         const currentQty = Number(existingHolding.quantity);
         const currentAvgCost = Number(existingHolding.avgCost);
 
-        if (dto.type === TransactionType.BUY || dto.type === TransactionType.TRANSFER_IN) {
+        if (
+          dto.type === TransactionType.BUY ||
+          dto.type === TransactionType.TRANSFER_IN
+        ) {
           // Weighted average cost recalculation
           const totalCost = currentQty * currentAvgCost + totalValue;
           newQty = currentQty + qty;
           newAvgCost = newQty === 0 ? price : totalCost / newQty;
-        } else if (dto.type === TransactionType.SELL || dto.type === TransactionType.TRANSFER_OUT) {
+        } else if (
+          dto.type === TransactionType.SELL ||
+          dto.type === TransactionType.TRANSFER_OUT
+        ) {
           if (currentQty < qty) {
             throw new BadRequestException(
               `Insufficient quantity: have ${currentQty}, selling ${qty}`,
@@ -101,7 +127,10 @@ export class TransactionsService {
         } else if (dto.type === TransactionType.SPLIT) {
           // qty = new total quantity after the split
           newQty = qty;
-          newAvgCost = currentQty === 0 ? currentAvgCost : (currentAvgCost * currentQty) / qty;
+          newAvgCost =
+            currentQty === 0
+              ? currentAvgCost
+              : (currentAvgCost * currentQty) / qty;
         } else {
           // DIVIDEND, FEE — no quantity change on the holding
           newQty = currentQty;
@@ -163,7 +192,9 @@ export class TransactionsService {
 
         // Update PortfolioCash balance
         await tx.portfolioCash.upsert({
-          where: { portfolioId_currency: { portfolioId, currency: dto.currency } },
+          where: {
+            portfolioId_currency: { portfolioId, currency: dto.currency },
+          },
           create: { portfolioId, currency: dto.currency, balance: cashAmount },
           update: { balance: { increment: cashAmount } },
         });
@@ -178,11 +209,19 @@ export class TransactionsService {
       return txn;
     });
 
-    return { message: 'Transaction recorded successfully', data: result };
+    return { message: "Transaction recorded successfully", data: result };
   }
 
-  async findAll(portfolioId: string, userId: string, query: QueryTransactionDto) {
-    await this.portfoliosService.assertAccess(portfolioId, userId, PortfolioRole.VIEWER);
+  async findAll(
+    portfolioId: string,
+    userId: string,
+    query: QueryTransactionDto,
+  ) {
+    await this.portfoliosService.assertAccess(
+      portfolioId,
+      userId,
+      PortfolioRole.VIEWER,
+    );
 
     const { type, limit = 20, offset = 0 } = query;
     const where: any = {
@@ -194,7 +233,7 @@ export class TransactionsService {
       this.prisma.transaction.findMany({
         where,
         select: txnSelect,
-        orderBy: { executedAt: 'desc' },
+        orderBy: { executedAt: "desc" },
         take: limit,
         skip: offset,
       }),
@@ -205,7 +244,11 @@ export class TransactionsService {
   }
 
   async findOne(portfolioId: string, userId: string, txnId: string) {
-    await this.portfoliosService.assertAccess(portfolioId, userId, PortfolioRole.VIEWER);
+    await this.portfoliosService.assertAccess(
+      portfolioId,
+      userId,
+      PortfolioRole.VIEWER,
+    );
 
     const txn = await this.prisma.transaction.findFirst({
       where: { id: txnId, portfolioAsset: { portfolioId } },

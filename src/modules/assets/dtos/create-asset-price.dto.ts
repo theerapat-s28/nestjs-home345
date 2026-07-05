@@ -1,6 +1,14 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, MaxLength } from 'class-validator';
-import { Currency } from '@prisma/client';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  MaxLength,
+} from "class-validator";
+import { Currency } from "@prisma/client";
 
 export class CreateAssetPriceDto {
   @ApiProperty({ example: 95000.5 })
@@ -12,7 +20,7 @@ export class CreateAssetPriceDto {
   @IsEnum(Currency)
   currency: Currency;
 
-  @ApiPropertyOptional({ example: 'binance' })
+  @ApiPropertyOptional({ example: "binance" })
   @IsString()
   @IsOptional()
   @MaxLength(100)

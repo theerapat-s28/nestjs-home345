@@ -128,7 +128,10 @@ export class Home345BillsController {
 
   @Patch("home345-transactions/:id")
   @ApiOperation({ summary: "Update a transaction" })
-  updateTransaction(@Param("id") id: string, @Body() dto: UpdateTransactionDto) {
+  updateTransaction(
+    @Param("id") id: string,
+    @Body() dto: UpdateTransactionDto,
+  ) {
     return this.service.updateTransaction(id, dto);
   }
 

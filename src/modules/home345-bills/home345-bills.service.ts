@@ -9,6 +9,13 @@ import { UpdateTransactionDto } from "./dtos/update-transaction.dto";
 import { QueryBillDto } from "./dtos/query-bill.dto";
 import { QueryTransactionDto } from "./dtos/query-transaction.dto";
 
+/** class-validator's `@IsDateString()` accepts date-only strings, but Prisma's `DateTime` scalar requires a full ISO-8601 datetime — convert here. */
+function withParsedDate<T extends { date?: string }>(
+  dto: T,
+): Omit<T, "date"> & { date?: Date } {
+  return { ...dto, date: dto.date ? new Date(dto.date) : undefined };
+}
+
 @Injectable()
 export class Home345BillsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -16,7 +23,7 @@ export class Home345BillsService {
   // ─── Bills ────────────────────────────────────────────────────────────────
 
   async createBill(dto: CreateBillDto) {
-    return this.prisma.home345Bill.create({ data: dto });
+    return this.prisma.home345Bill.create({ data: withParsedDate(dto) });
   }
 
   async findAllBills(query: QueryBillDto) {
@@ -48,7 +55,10 @@ export class Home345BillsService {
 
   async updateBill(id: string, dto: UpdateBillDto) {
     await this.findOneBill(id);
-    return this.prisma.home345Bill.update({ where: { id }, data: dto });
+    return this.prisma.home345Bill.update({
+      where: { id },
+      data: withParsedDate(dto),
+    });
   }
 
   async removeBill(id: string) {
@@ -68,14 +78,16 @@ export class Home345BillsService {
 
   async createBillItem(billId: string, dto: CreateBillItemDto) {
     await this.findOneBill(billId);
-    return this.prisma.home345BillItem.create({ data: { ...dto, billId } });
+    return this.prisma.home345BillItem.create({
+      data: { ...withParsedDate(dto), billId },
+    });
   }
 
   async updateBillItem(billId: string, itemId: string, dto: UpdateBillItemDto) {
     await this.findBillItem(billId, itemId);
     return this.prisma.home345BillItem.update({
       where: { id: itemId },
-      data: dto,
+      data: withParsedDate(dto),
     });
   }
 

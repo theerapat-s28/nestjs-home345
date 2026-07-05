@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsInt, IsNotEmpty, IsOptional, IsString, IsDateString, Min } from "class-validator";
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsDateString,
+  Min,
+} from "class-validator";
 
 export class CreateBillDto {
   @ApiProperty({ example: 1 })

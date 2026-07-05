@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@core/prisma/prisma.service';
-import { PortfolioRole } from '@prisma/client';
-import { PortfoliosService } from '@modules/portfolios/portfolios.service';
-import { CashOperationDto } from './dtos/cash-operation.dto';
-import { QueryCashTxnDto } from './dtos/query-cash-txn.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "@core/prisma/prisma.service";
+import { PortfolioRole } from "@prisma/client";
+import { PortfoliosService } from "@modules/portfolios/portfolios.service";
+import { CashOperationDto } from "./dtos/cash-operation.dto";
+import { QueryCashTxnDto } from "./dtos/query-cash-txn.dto";
 
 // ── Select shapes ─────────────────────────────────────────────────────────────
 
@@ -35,20 +35,39 @@ export class PortfolioCashService {
   // ── Cash balances ─────────────────────────────────────────────────────────
 
   async getBalances(portfolioId: string, userId: string) {
-    await this.portfoliosService.assertAccess(portfolioId, userId, PortfolioRole.VIEWER);
+    await this.portfoliosService.assertAccess(
+      portfolioId,
+      userId,
+      PortfolioRole.VIEWER,
+    );
 
     const balances = await this.prisma.portfolioCash.findMany({
       where: { portfolioId },
       select: cashBalanceSelect,
-      orderBy: { currency: 'asc' },
+      orderBy: { currency: "asc" },
     });
-    return { data: balances, meta: { totalRecords: balances.length, limit: balances.length, offset: 0 } };
+    return {
+      data: balances,
+      meta: {
+        totalRecords: balances.length,
+        limit: balances.length,
+        offset: 0,
+      },
+    };
   }
 
   // ── Cash operations (deposit / withdrawal / manual) ───────────────────────
 
-  async recordOperation(portfolioId: string, userId: string, dto: CashOperationDto) {
-    await this.portfoliosService.assertAccess(portfolioId, userId, PortfolioRole.EDITOR);
+  async recordOperation(
+    portfolioId: string,
+    userId: string,
+    dto: CashOperationDto,
+  ) {
+    await this.portfoliosService.assertAccess(
+      portfolioId,
+      userId,
+      PortfolioRole.EDITOR,
+    );
 
     const amount = dto.amount;
 
@@ -68,7 +87,9 @@ export class PortfolioCashService {
 
       // Update balance
       await tx.portfolioCash.upsert({
-        where: { portfolioId_currency: { portfolioId, currency: dto.currency } },
+        where: {
+          portfolioId_currency: { portfolioId, currency: dto.currency },
+        },
         create: { portfolioId, currency: dto.currency, balance: amount },
         update: { balance: { increment: amount } },
       });
@@ -76,13 +97,21 @@ export class PortfolioCashService {
       return cashTxn;
     });
 
-    return { message: 'Cash operation recorded', data: result };
+    return { message: "Cash operation recorded", data: result };
   }
 
   // ── Cash transaction history ──────────────────────────────────────────────
 
-  async getCashTransactions(portfolioId: string, userId: string, query: QueryCashTxnDto) {
-    await this.portfoliosService.assertAccess(portfolioId, userId, PortfolioRole.VIEWER);
+  async getCashTransactions(
+    portfolioId: string,
+    userId: string,
+    query: QueryCashTxnDto,
+  ) {
+    await this.portfoliosService.assertAccess(
+      portfolioId,
+      userId,
+      PortfolioRole.VIEWER,
+    );
 
     const { type, currency, limit = 20, offset = 0 } = query;
     const where: any = {
@@ -95,7 +124,7 @@ export class PortfolioCashService {
       this.prisma.cashTransaction.findMany({
         where,
         select: cashTxnSelect,
-        orderBy: { executedAt: 'desc' },
+        orderBy: { executedAt: "desc" },
         take: limit,
         skip: offset,
       }),

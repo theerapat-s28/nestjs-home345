@@ -8,6 +8,8 @@ services:
     build: .
     # ports:
     #   - "3000:3000"
+    volumes:
+      - ./uploads:/workspace/${LOCAL_UPLOADS_DEST:-uploads}
     env_file:
       - .env.production
     networks:

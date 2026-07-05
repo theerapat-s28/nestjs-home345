@@ -2,14 +2,14 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { PrismaService } from '@core/prisma/prisma.service';
-import { MemberStatus, PortfolioRole } from '@prisma/client';
-import { CreatePortfolioDto } from './dtos/create-portfolio.dto';
-import { UpdatePortfolioDto } from './dtos/update-portfolio.dto';
-import { InviteMemberDto } from './dtos/invite-member.dto';
-import { AddMemberByEmailDto } from './dtos/add-member-by-email.dto';
-import { UpdateMemberRoleDto } from './dtos/update-member-role.dto';
+} from "@nestjs/common";
+import { PrismaService } from "@core/prisma/prisma.service";
+import { MemberStatus, PortfolioRole } from "@prisma/client";
+import { CreatePortfolioDto } from "./dtos/create-portfolio.dto";
+import { UpdatePortfolioDto } from "./dtos/update-portfolio.dto";
+import { InviteMemberDto } from "./dtos/invite-member.dto";
+import { AddMemberByEmailDto } from "./dtos/add-member-by-email.dto";
+import { UpdateMemberRoleDto } from "./dtos/update-member-role.dto";
 
 // ── Select shapes ────────────────────────────────────────────────────────────
 
@@ -70,11 +70,16 @@ export class PortfoliosService {
         select: portfolioSelect,
       });
       await tx.portfolioMember.create({
-        data: { portfolioId: p.id, userId, role: PortfolioRole.OWNER, status: MemberStatus.ACTIVE },
+        data: {
+          portfolioId: p.id,
+          userId,
+          role: PortfolioRole.OWNER,
+          status: MemberStatus.ACTIVE,
+        },
       });
       return p;
     });
-    return { message: 'Portfolio created successfully', data: portfolio };
+    return { message: "Portfolio created successfully", data: portfolio };
   }
 
   async findAll(userId: string) {
@@ -90,14 +95,17 @@ export class PortfoliosService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     const data = memberships
       .filter((m) => m.portfolio.isActive)
       .map((m) => ({ ...m.portfolio, myRole: m.role, myStatus: m.status }));
 
-    return { data, meta: { totalRecords: data.length, limit: data.length, offset: 0 } };
+    return {
+      data,
+      meta: { totalRecords: data.length, limit: data.length, offset: 0 },
+    };
   }
 
   async findOne(portfolioId: string, userId: string) {
@@ -110,7 +118,8 @@ export class PortfoliosService {
         _count: { select: { assets: true, cashAccounts: true } },
       },
     });
-    if (!portfolio) throw new NotFoundException(`Portfolio ${portfolioId} not found`);
+    if (!portfolio)
+      throw new NotFoundException(`Portfolio ${portfolioId} not found`);
     return portfolio;
   }
 
@@ -121,7 +130,7 @@ export class PortfoliosService {
       data: dto,
       select: portfolioSelect,
     });
-    return { message: 'Portfolio updated successfully', data: updated };
+    return { message: "Portfolio updated successfully", data: updated };
   }
 
   async remove(portfolioId: string, userId: string) {
@@ -130,12 +139,16 @@ export class PortfoliosService {
       where: { id: portfolioId },
       data: { deletedAt: new Date(), isActive: false },
     });
-    return { message: 'Portfolio deleted successfully', data: null };
+    return { message: "Portfolio deleted successfully", data: null };
   }
 
   // ── Member management ─────────────────────────────────────────────────────
 
-  async inviteMember(portfolioId: string, userId: string, dto: InviteMemberDto) {
+  async inviteMember(
+    portfolioId: string,
+    userId: string,
+    dto: InviteMemberDto,
+  ) {
     await this.assertAccess(portfolioId, userId, PortfolioRole.OWNER);
 
     // Verify target user exists
@@ -143,18 +156,28 @@ export class PortfoliosService {
       where: { id: dto.userId, deletedAt: null },
       select: { id: true, username: true, email: true },
     });
-    if (!targetUser) throw new NotFoundException(`User ${dto.userId} not found`);
+    if (!targetUser)
+      throw new NotFoundException(`User ${dto.userId} not found`);
 
     const member = await this.prisma.portfolioMember.upsert({
       where: { userId_portfolioId: { userId: dto.userId, portfolioId } },
-      create: { portfolioId, userId: dto.userId, role: dto.role, status: MemberStatus.PENDING },
+      create: {
+        portfolioId,
+        userId: dto.userId,
+        role: dto.role,
+        status: MemberStatus.PENDING,
+      },
       update: { role: dto.role, status: MemberStatus.PENDING }, // Reset to pending if re-invited
       select: memberSelect,
     });
-    return { message: 'Member added successfully', data: member };
+    return { message: "Member added successfully", data: member };
   }
 
-  async addMemberByEmail(portfolioId: string, userId: string, dto: AddMemberByEmailDto) {
+  async addMemberByEmail(
+    portfolioId: string,
+    userId: string,
+    dto: AddMemberByEmailDto,
+  ) {
     await this.assertAccess(portfolioId, userId, PortfolioRole.OWNER);
 
     // Verify target user exists by email
@@ -162,41 +185,62 @@ export class PortfoliosService {
       where: { email: dto.email, deletedAt: null },
       select: { id: true, username: true, email: true },
     });
-    
+
     if (!targetUser) {
       throw new NotFoundException(`User with email "${dto.email}" not found`);
     }
 
     const member = await this.prisma.portfolioMember.upsert({
       where: { userId_portfolioId: { userId: targetUser.id, portfolioId } },
-      create: { portfolioId, userId: targetUser.id, role: dto.role, status: MemberStatus.PENDING },
+      create: {
+        portfolioId,
+        userId: targetUser.id,
+        role: dto.role,
+        status: MemberStatus.PENDING,
+      },
       update: { role: dto.role, status: MemberStatus.PENDING }, // Reset to pending if re-invited
       select: memberSelect,
     });
 
-    return { message: `Member "${targetUser.email}" added successfully`, data: member };
+    return {
+      message: `Member "${targetUser.email}" added successfully`,
+      data: member,
+    };
   }
 
-  async updateMemberRole(portfolioId: string, userId: string, targetUserId: string, dto: UpdateMemberRoleDto) {
+  async updateMemberRole(
+    portfolioId: string,
+    userId: string,
+    targetUserId: string,
+    dto: UpdateMemberRoleDto,
+  ) {
     await this.assertAccess(portfolioId, userId, PortfolioRole.OWNER);
-    if (userId === targetUserId) throw new ForbiddenException('Cannot change your own role');
+    if (userId === targetUserId)
+      throw new ForbiddenException("Cannot change your own role");
 
     const member = await this.prisma.portfolioMember.update({
       where: { userId_portfolioId: { userId: targetUserId, portfolioId } },
       data: { role: dto.role },
       select: memberSelect,
     });
-    return { message: 'Member role updated', data: member };
+    return { message: "Member role updated", data: member };
   }
 
-  async removeMember(portfolioId: string, userId: string, targetUserId: string) {
+  async removeMember(
+    portfolioId: string,
+    userId: string,
+    targetUserId: string,
+  ) {
     await this.assertAccess(portfolioId, userId, PortfolioRole.OWNER);
-    if (userId === targetUserId) throw new ForbiddenException('Cannot remove yourself — transfer ownership first');
+    if (userId === targetUserId)
+      throw new ForbiddenException(
+        "Cannot remove yourself — transfer ownership first",
+      );
 
     await this.prisma.portfolioMember.delete({
       where: { userId_portfolioId: { userId: targetUserId, portfolioId } },
     });
-    return { message: 'Member removed', data: null };
+    return { message: "Member removed", data: null };
   }
 
   async acceptInvitation(portfolioId: string, userId: string) {
@@ -204,9 +248,12 @@ export class PortfoliosService {
       where: { userId_portfolioId: { userId, portfolioId } },
     });
 
-    if (!member) throw new NotFoundException('Invitation not found');
+    if (!member) throw new NotFoundException("Invitation not found");
     if (member.status !== MemberStatus.PENDING) {
-      return { message: `Member is already ${member.status.toLowerCase()}`, data: null };
+      return {
+        message: `Member is already ${member.status.toLowerCase()}`,
+        data: null,
+      };
     }
 
     const updated = await this.prisma.portfolioMember.update({
@@ -215,7 +262,7 @@ export class PortfoliosService {
       select: memberSelect,
     });
 
-    return { message: 'Invitation accepted', data: updated };
+    return { message: "Invitation accepted", data: updated };
   }
 
   async rejectInvitation(portfolioId: string, userId: string) {
@@ -223,16 +270,16 @@ export class PortfoliosService {
       where: { userId_portfolioId: { userId, portfolioId } },
     });
 
-    if (!member) throw new NotFoundException('Invitation not found');
-    
-    // We can either delete the record or mark as REVOKED. 
-    // Usually for "reject" we might just delete to allow future re-invites without record bloat, 
+    if (!member) throw new NotFoundException("Invitation not found");
+
+    // We can either delete the record or mark as REVOKED.
+    // Usually for "reject" we might just delete to allow future re-invites without record bloat,
     // or keep as REVOKED for history. Let's delete for "reject".
     await this.prisma.portfolioMember.delete({
       where: { userId_portfolioId: { userId, portfolioId } },
     });
 
-    return { message: 'Invitation rejected', data: null };
+    return { message: "Invitation rejected", data: null };
   }
 
   // ── Holdings view ─────────────────────────────────────────────────────────
@@ -243,24 +290,40 @@ export class PortfoliosService {
     const holdings = await this.prisma.portfolioAsset.findMany({
       where: { portfolioId, deletedAt: null, quantity: { gt: 0 } },
       select: holdingSelect,
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     });
-    return { data: holdings, meta: { totalRecords: holdings.length, limit: holdings.length, offset: 0 } };
+    return {
+      data: holdings,
+      meta: {
+        totalRecords: holdings.length,
+        limit: holdings.length,
+        offset: 0,
+      },
+    };
   }
 
   // ── Shared access helper (exported for use by other services) ─────────────
 
-  async assertAccess(portfolioId: string, userId: string, minRole: PortfolioRole): Promise<void> {
+  async assertAccess(
+    portfolioId: string,
+    userId: string,
+    minRole: PortfolioRole,
+  ): Promise<void> {
     const member = await this.prisma.portfolioMember.findUnique({
       where: { userId_portfolioId: { userId, portfolioId } },
       select: { role: true, status: true },
     });
-    if (!member) throw new ForbiddenException('You are not a member of this portfolio');
+    if (!member)
+      throw new ForbiddenException("You are not a member of this portfolio");
     if (member.status !== MemberStatus.ACTIVE) {
-      throw new ForbiddenException(`Your membership is currently ${member.status.toLowerCase()}`);
+      throw new ForbiddenException(
+        `Your membership is currently ${member.status.toLowerCase()}`,
+      );
     }
     if (roleRank[member.role] < roleRank[minRole]) {
-      throw new ForbiddenException(`Required role: ${minRole}, your role: ${member.role}`);
+      throw new ForbiddenException(
+        `Required role: ${minRole}, your role: ${member.role}`,
+      );
     }
   }
 }

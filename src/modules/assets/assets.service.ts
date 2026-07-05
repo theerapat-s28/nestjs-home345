@@ -1,10 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@core/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
-import { CreateAssetDto } from './dtos/create-asset.dto';
-import { UpdateAssetDto } from './dtos/update-asset.dto';
-import { QueryAssetDto } from './dtos/query-asset.dto';
-import { CreateAssetPriceDto } from './dtos/create-asset-price.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "@core/prisma/prisma.service";
+import { Prisma } from "@prisma/client";
+import { CreateAssetDto } from "./dtos/create-asset.dto";
+import { UpdateAssetDto } from "./dtos/update-asset.dto";
+import { QueryAssetDto } from "./dtos/query-asset.dto";
+import { CreateAssetPriceDto } from "./dtos/create-asset-price.dto";
 
 // ── Select shapes ─────────────────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ const assetSelect = {
   updatedAt: true,
   prices: {
     take: 1,
-    orderBy: { recordedAt: 'desc' as const },
+    orderBy: { recordedAt: "desc" as const },
     select: priceSelect,
   },
 } satisfies Prisma.AssetSelect;
@@ -42,7 +42,7 @@ export class AssetsService {
       data: dto,
       select: assetSelect,
     });
-    return { message: 'Asset created successfully', data: asset };
+    return { message: "Asset created successfully", data: asset };
   }
 
   async findAll(query: QueryAssetDto) {
@@ -53,8 +53,8 @@ export class AssetsService {
       ...(search
         ? {
             OR: [
-              { symbol: { contains: search, mode: 'insensitive' } },
-              { name: { contains: search, mode: 'insensitive' } },
+              { symbol: { contains: search, mode: "insensitive" } },
+              { name: { contains: search, mode: "insensitive" } },
             ],
           }
         : {}),
@@ -65,7 +65,7 @@ export class AssetsService {
       this.prisma.asset.findMany({
         where,
         select: assetSelect,
-        orderBy: { symbol: 'asc' },
+        orderBy: { symbol: "asc" },
         take: limit,
         skip: offset,
       }),
@@ -86,7 +86,7 @@ export class AssetsService {
       data: dto,
       select: assetSelect,
     });
-    return { message: 'Asset updated successfully', data: updated };
+    return { message: "Asset updated successfully", data: updated };
   }
 
   async remove(id: string) {
@@ -95,7 +95,7 @@ export class AssetsService {
       where: { id },
       data: { deletedAt: new Date(), isActive: false },
     });
-    return { message: 'Asset deleted successfully', data: null };
+    return { message: "Asset deleted successfully", data: null };
   }
 
   // ── Price history ─────────────────────────────────────────────────────────
@@ -106,7 +106,7 @@ export class AssetsService {
       data: { assetId, ...dto },
       select: priceSelect,
     });
-    return { message: 'Price recorded successfully', data: price };
+    return { message: "Price recorded successfully", data: price };
   }
 
   async getPriceHistory(assetId: string, limit = 50, offset = 0) {
@@ -115,7 +115,7 @@ export class AssetsService {
       this.prisma.assetPrice.findMany({
         where: { assetId },
         select: priceSelect,
-        orderBy: { recordedAt: 'desc' },
+        orderBy: { recordedAt: "desc" },
         take: limit,
         skip: offset,
       }),
@@ -128,7 +128,7 @@ export class AssetsService {
     const price = await this.prisma.assetPrice.findFirst({
       where: { assetId },
       select: priceSelect,
-      orderBy: { recordedAt: 'desc' },
+      orderBy: { recordedAt: "desc" },
     });
     return price;
   }
@@ -143,5 +143,4 @@ export class AssetsService {
     if (!asset) throw new NotFoundException(`Asset ${id} not found`);
     return asset;
   }
-
 }

@@ -54,7 +54,10 @@ export class NotesService {
       },
       select: noteSelect,
     });
-    return { message: "Note created successfully", data: this.enrichNote(note) };
+    return {
+      message: "Note created successfully",
+      data: this.enrichNote(note),
+    };
   }
 
   async findAll(query: QueryNoteDto) {
@@ -64,7 +67,9 @@ export class NotesService {
 
     if (!includeExpired) {
       const now = new Date();
-      conditions.push({ OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] });
+      conditions.push({
+        OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+      });
     }
 
     if (search) {
@@ -112,7 +117,10 @@ export class NotesService {
       },
       select: noteSelect,
     });
-    return { message: "Note updated successfully", data: this.enrichNote(updated) };
+    return {
+      message: "Note updated successfully",
+      data: this.enrichNote(updated),
+    };
   }
 
   async remove(id: string) {
@@ -173,7 +181,9 @@ export class NotesService {
   }
 
   private enrichAttachment(
-    attachment: Prisma.NoteAttachmentGetPayload<{ select: typeof attachmentSelect }>,
+    attachment: Prisma.NoteAttachmentGetPayload<{
+      select: typeof attachmentSelect;
+    }>,
   ) {
     return {
       ...attachment,

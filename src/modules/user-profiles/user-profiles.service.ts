@@ -49,6 +49,7 @@ export class UserProfilesService {
   }
 
   async update(userId: string, dto: UpdateProfileDto) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { userId: _, ...profileData } = dto;
 
     const user = await this.prisma.user.update({

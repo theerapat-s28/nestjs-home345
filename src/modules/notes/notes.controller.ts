@@ -73,7 +73,9 @@ export class NotesController {
 
   @Post(":noteId/attachments")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Upload a file and attach it to a note (max 10 MB)" })
+  @ApiOperation({
+    summary: "Upload a file and attach it to a note (max 10 MB)",
+  })
   @ApiConsumes("multipart/form-data")
   @ApiParam({ name: "noteId", description: "Note UUID" })
   @ApiBody({

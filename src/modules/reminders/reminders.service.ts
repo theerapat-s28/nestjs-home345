@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "@core/prisma/prisma.service";
 import { CreateReminderDto } from "./dtos/create-reminder.dto";
 import { UpdateReminderDto } from "./dtos/update-reminder.dto";

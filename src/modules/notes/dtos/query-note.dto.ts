@@ -3,7 +3,10 @@ import { Transform } from "class-transformer";
 import { IsBoolean, IsOptional, IsString } from "class-validator";
 
 export class QueryNoteDto {
-  @ApiPropertyOptional({ example: "shopping", description: "Search in title and content" })
+  @ApiPropertyOptional({
+    example: "shopping",
+    description: "Search in title and content",
+  })
   @IsString()
   @IsOptional()
   search?: string;

@@ -39,16 +39,18 @@ Creates a new payment method for the authenticated user.
   "type": "CREDIT_CARD",
   "provider": "VISA",
   "last4": "1234",
-  "name": "My main card"
+  "name": "My main card",
+  "cardExpiry": "2028-12-31"
 }
 ```
 
-| Field      | Type          | Required | Description                              |
-| ---------- | ------------- | -------- | ---------------------------------------- |
-| `type`     | `PaymentType` | Yes      | One of the `PaymentType` values above    |
-| `provider` | string        | No       | Card network / provider (VISA, Mastercard, etc.) |
-| `last4`    | string        | No       | Last 4 digits — **never send full card numbers** |
-| `name`     | string        | No       | User-friendly label for the method       |
+| Field        | Type          | Required | Description                              |
+| ------------ | ------------- | -------- | ---------------------------------------- |
+| `type`       | `PaymentType` | Yes      | One of the `PaymentType` values above    |
+| `provider`   | string        | No       | Card network / provider (VISA, Mastercard, etc.) |
+| `last4`      | string        | No       | Last 4 digits — **never send full card numbers** |
+| `name`       | string        | No       | User-friendly label for the method       |
+| `cardExpiry` | date string (ISO 8601) | No | Card expiry date                         |
 
 **Response:**
 
@@ -60,6 +62,7 @@ Creates a new payment method for the authenticated user.
   "provider": "VISA",
   "last4": "1234",
   "name": "My main card",
+  "cardExpiry": "2028-12-31T00:00:00.000Z",
   "createdAt": "2026-04-01T10:00:00.000Z",
   "updatedAt": "2026-04-01T10:00:00.000Z",
   "deletedAt": null
@@ -85,6 +88,7 @@ Returns all active (non-deleted) payment methods for the authenticated user.
     "provider": "VISA",
     "last4": "1234",
     "name": "My main card",
+    "cardExpiry": "2028-12-31T00:00:00.000Z",
     "createdAt": "2026-04-01T10:00:00.000Z",
     "updatedAt": "2026-04-01T10:00:00.000Z",
     "deletedAt": null
@@ -96,6 +100,7 @@ Returns all active (non-deleted) payment methods for the authenticated user.
     "provider": null,
     "last4": null,
     "name": "PayPal personal",
+    "cardExpiry": null,
     "createdAt": "2026-04-02T08:00:00.000Z",
     "updatedAt": "2026-04-02T08:00:00.000Z",
     "deletedAt": null
@@ -129,6 +134,7 @@ Returns a single payment method by UUID, including its linked subscriptions.
   "provider": "VISA",
   "last4": "1234",
   "name": "My main card",
+  "cardExpiry": "2028-12-31T00:00:00.000Z",
   "createdAt": "2026-04-01T10:00:00.000Z",
   "updatedAt": "2026-04-01T10:00:00.000Z",
   "deletedAt": null,
@@ -173,7 +179,8 @@ Updates fields on an existing payment method. All fields are optional (partial u
   "type": "DEBIT_CARD",
   "provider": "Mastercard",
   "last4": "5678",
-  "name": "Debit card"
+  "name": "Debit card",
+  "cardExpiry": "2029-06-30"
 }
 ```
 

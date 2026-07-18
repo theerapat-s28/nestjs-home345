@@ -256,6 +256,8 @@ model PaymentMethod {
   last4    String? // Last 4 digits only — never store full card numbers
   name     String? // "My main card"
 
+  cardExpiry DateTime? @db.Date // Card expiry date, optional
+
   // --- Auto Timestamps ---
   createdAt DateTime  @default(now()) @db.Timestamptz
   updatedAt DateTime  @updatedAt @db.Timestamptz

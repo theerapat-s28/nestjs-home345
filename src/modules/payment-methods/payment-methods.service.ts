@@ -3,6 +3,16 @@ import { PrismaService } from "@core/prisma/prisma.service";
 import { CreatePaymentMethodDto } from "./dtos/create-payment-method.dto";
 import { UpdatePaymentMethodDto } from "./dtos/update-payment-method.dto";
 
+/** class-validator's `@IsDateString()` accepts date-only strings, but Prisma's `DateTime` scalar requires a full ISO-8601 datetime — convert here. */
+function withParsedCardExpiry<T extends { cardExpiry?: string }>(
+  dto: T,
+): Omit<T, "cardExpiry"> & { cardExpiry?: Date } {
+  return {
+    ...dto,
+    cardExpiry: dto.cardExpiry ? new Date(dto.cardExpiry) : undefined,
+  };
+}
+
 @Injectable()
 export class PaymentMethodsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -10,7 +20,7 @@ export class PaymentMethodsService {
   async create(userId: string, createDto: CreatePaymentMethodDto) {
     return this.prisma.paymentMethod.create({
       data: {
-        ...createDto,
+        ...withParsedCardExpiry(createDto),
         userId,
       },
     });
@@ -49,7 +59,7 @@ export class PaymentMethodsService {
 
     return this.prisma.paymentMethod.update({
       where: { id },
-      data: updateDto,
+      data: withParsedCardExpiry(updateDto),
     });
   }
 

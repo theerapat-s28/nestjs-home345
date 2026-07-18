@@ -1,5 +1,11 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, IsOptional, IsEnum } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  IsDateString,
+} from "class-validator";
 import { PaymentType } from "@prisma/client";
 
 export class CreatePaymentMethodDto {
@@ -22,4 +28,9 @@ export class CreatePaymentMethodDto {
   @IsString()
   @IsOptional()
   name?: string;
+
+  @ApiPropertyOptional({ example: "2028-12-31" })
+  @IsDateString()
+  @IsOptional()
+  cardExpiry?: string;
 }

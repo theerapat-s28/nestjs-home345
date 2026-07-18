@@ -32,4 +32,4 @@ EXPOSE 3000
 CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/src/main"]
 
 
-# docker build -t ghcr.io/theerapat-s28/nestjs-home345:1.1.0 . && docker push ghcr.io/theerapat-s28/nestjs-home345:1.1.0
+# docker build -t ghcr.io/theerapat-s28/nestjs-home345:1.2.0 . && docker push ghcr.io/theerapat-s28/nestjs-home345:1.2.0
